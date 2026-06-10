@@ -1,6 +1,16 @@
 
 # Change Log
 
+## [1.2.0] 2026-06-10
+
+- Added configurable Klay direction and spacing, with top-to-bottom Klay graphs as the default
+- Added a per-graph direction selector that immediately relayouts the current Klay graph and preserves its webview state
+- Added settings for file group boxes, file group labels, and optional file subtitles beneath function names
+- Improved node labels and search results to distinguish function names from their source files
+- Added explicit activation events for all Chartographer commands
+- Expanded user and developer documentation for graph settings, packaging, and implementation ownership
+- Migrated dependency management and VSIX packaging from npm to Yarn, replacing package-lock.json with yarn.lock
+
 ## [1.1.0] 2025-03-18
 
 - Added parameterized node group name forming

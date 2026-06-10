@@ -106,6 +106,11 @@ export function setupCallGraph(
         colorScheme: configs.get<string>('colorScheme'),
         nodeDisplayFormat: configs.get<string>('nodeDisplayFormat'),
         trimFunctionNames: configs.get<boolean>('trimFunctionNames'),
+        defaultKlayDirection: configs.get<string>('defaultKlayDirection'),
+        klaySpacing: configs.get<number>('klaySpacing'),
+        showFileGroupBox: configs.get<boolean>('showFileGroupBox'),
+        showFileGroupLabel: configs.get<boolean>('showFileGroupLabel'),
+        showFunctionFileSubtitle: configs.get<boolean>('showFunctionFileSubtitle'),
         colors: {
             nodeBackgroundColor: configs.get<string>('colors.nodeBackgroundColor'),
             nodeColor: configs.get<string>('colors.nodeColor'),

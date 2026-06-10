@@ -22,17 +22,22 @@ function trimFunctionName(name: string): string {
 
 export const getCyNodes = (n: Node, config?: any) => {
     const nodeName = config?.trimFunctionNames ? trimFunctionName(n.name) : n.name;
+    const fileLabel = config?.nodeDisplayFormat ? formatFileLabel(n.file, config) : '';
+    const displayLabel = fileLabel ? `${nodeName}\n${fileLabel}` : nodeName;
     return [
         {
             group: 'nodes',
             data: {
                 id: `node:${n.id}`,
                 label: nodeName,
+                fileLabel,
+                displayLabel,
                 parent: `file:${n.file}`,
                 uri: n.uri,
                 line: n.line,
                 character: n.character,
-            }
+            },
+            classes: fileLabel ? 'hasFileSubtitle' : undefined,
         } as CyNode,
         {
             group: 'nodes',
@@ -127,6 +132,8 @@ export type CyNode = {
     data: {
         id: string;
         label: string;
+        fileLabel?: string;
+        displayLabel?: string;
         parent?: string;
         uri: vscode.Uri;
         line: number;

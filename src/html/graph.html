@@ -3,11 +3,46 @@
     <head>
         <title>Chartographer</title>
         <style>
+            #graph-container {
+                position: relative;
+                height: 100vh;
+            }
+
             #cy {
-                height: 500px;
+                height: 100%;
                 width: 100%;
                 display: block;
                 z-index: 10;
+            }
+
+            #node-labels {
+                position: absolute;
+                inset: 0;
+                pointer-events: none;
+                z-index: 11;
+                overflow: hidden;
+            }
+
+            .node-label {
+                position: absolute;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                box-sizing: border-box;
+                line-height: 1.15;
+                text-align: center;
+                white-space: nowrap;
+            }
+
+            .node-label-title {
+                font-size: 12px;
+            }
+
+            .node-label-file {
+                margin-top: 2px;
+                font-size: 9px;
+                opacity: 0.72;
             }
 
             #instructions {
@@ -71,6 +106,41 @@
                 justify-content: center;
                 align-items: center;
                 text-align: center;
+            }
+
+            #klay-direction-container {
+                position: absolute;
+                top: 10px;
+                left: 175px;
+                z-index: 20;
+                height: 40px;
+                padding: 0 10px;
+                border-radius: 10px;
+                background-color: rgba(0, 0, 0, 0.3);
+                color: rgba(255, 255, 255, 0.7);
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 12px;
+            }
+
+            #klay-direction-select {
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 5px;
+                padding: 4px 6px;
+                background-color: var(--vscode-dropdown-background);
+                color: var(--vscode-dropdown-foreground);
+                font-size: 12px;
+            }
+
+            #klay-direction-select:focus {
+                border-color: var(--vscode-focusBorder);
+                outline: none;
+            }
+
+            #klay-direction-select option {
+                background-color: var(--vscode-dropdown-background);
+                color: var(--vscode-dropdown-foreground);
             }
 
             #search-container {
@@ -146,13 +216,27 @@
 
         <div id="reset-zoom" onclick="cy.fit()">Reset Zoom</div>
 
+        <!-- This control changes only the currently rendered graph. -->
+        <div id="klay-direction-container">
+            <label for="klay-direction-select">Direction</label>
+            <select id="klay-direction-select">
+                <option value="DOWN">Top to bottom</option>
+                <option value="RIGHT">Left to right</option>
+                <option value="LEFT">Right to left</option>
+                <option value="UP">Bottom to top</option>
+            </select>
+        </div>
+
         <!-- Search Bar -->
         <div id="search-container">
             <input type="text" id="search-input" placeholder="Search nodes..." />
             <div id="search-results"></div>
         </div>
 
-        <div id="cy" style="height:100vh"></div>
+        <div id="graph-container">
+            <div id="cy"></div>
+            <div id="node-labels"></div>
+        </div>
 
         <script src="{{libsURI}}/cytoscape@3.31.1/dist/cytoscape.min.js"></script>
 
@@ -184,10 +268,17 @@
 				elems: [],
 			}
 
+            const nodeLabelElements = new Map();
+
             const layoutDebounce = {
                 klay: 5,
                 elk: 500,
                 dagre: 5,
+            }
+
+            const showFunctionFileSubtitles = () => {
+                return state.config.showFunctionFileSubtitle === true
+                    && !state.config.showFileGroupLabel;
             }
 
             const getLayoutOpts = () => {
@@ -200,14 +291,14 @@
                     animationDuration: 250,
                     klay: {
                         addUnnecessaryBendpoints: false,
-                        direction: 'RIGHT',
+                        direction: state.graphSettings?.klayDirection ?? state.config.defaultKlayDirection ?? 'DOWN',
                         layoutHierarchy: true,
-                        spacing: 40,
+                        spacing: state.config.klaySpacing ?? 1,
                         compactComponents: true,
-                        spacing: 5,
                         thoroughness: 10,
                         edgeSpacingFactor: 0.5,
                         inLayerSpacingFactor: 2,
+                        borderSpacing: 10,
                     },
                     elk: {
                         algorithm: 'layered',
@@ -284,14 +375,14 @@
 			const getCyStyle = () => {
                 const style = getComputedStyle(document.body);
                 const getStyle = (name) => style.getPropertyValue(name);
-                
+
                 // Get the selected color scheme
                 const selectedScheme = state.config.colorScheme || 'default';
                 const colors = colorSchemes[selectedScheme];
 
                 // Override colors with configuration options
                 const overrides = state.config.colors || {};
-                
+
                 // Helper function to get color value (either from CSS variable or direct color)
                 const getColor = (colorValue, overrideValue) => {
                     if (overrideValue) {
@@ -299,7 +390,7 @@
                     }
                     return colorValue.startsWith('--') ? getStyle(colorValue) : colorValue;
                 };
-                
+
 				return [
 					{
 						selector: 'node',
@@ -308,15 +399,25 @@
 							'background-color': getColor(colors.node.backgroundColor, overrides.nodeBackgroundColor),
 							'color': getColor(colors.node.color, overrides.nodeColor),
 							'width': 'label',
-							'padding': '5px',
+							'height': 16,
+							'padding': '7px',
 							'border-color': getColor(colors.node.borderColor, overrides.nodeBorderColor),
 							'border-width': 1,
 							'shape': 'roundrectangle',
-							'label': 'data(label)',
+							'label': showFunctionFileSubtitles() ? 'data(displayLabel)' : 'data(label)',
+							'text-opacity': 0,
+							'text-wrap': 'wrap',
 							'text-halign': 'center',
 							'text-valign': 'center',
+							'line-height': 1.2,
 						}
 					},
+                    {
+                        selector: '.hasFileSubtitle',
+                        style: {
+                            'height': showFunctionFileSubtitles() ? 28 : 16,
+                        }
+                    },
 					{
 						selector: '.dimmedNode',
 						style: {
@@ -347,13 +448,16 @@
 						selector: '.compound',
 						style: {
 							'font-size': '10px',
-							'padding-top': 25,
+							'padding-top': state.config.showFileGroupLabel ? 25 : 10,
 							'background-color': getColor(colors.compound.backgroundColor, overrides.nodeGroupBackgroundColor),
+							'background-opacity': state.config.showFileGroupBox ? 1 : 0,
+							'border-width': state.config.showFileGroupBox ? 1 : 0,
 							'shape': 'roundrectangle',
-							'label': 'data(label)',
+							'label': state.config.showFileGroupLabel ? 'data(label)' : '',
+							'text-opacity': 1,
 							'text-valign': 'top',
 							'text-halign': 'center',
-							'text-margin-y': 15,
+							'text-margin-y': state.config.showFileGroupLabel ? 15 : 5,
 						}
 					},
 					{
@@ -408,6 +512,79 @@
 				cy.nodes().data('isHighlighted', false)
 			}
 
+            // Cytoscape canvas labels use one font size, so HTML overlays provide a smaller file subtitle.
+            const syncNodeLabels = () => {
+                const labelsContainer = document.getElementById('node-labels');
+                const activeNodeIds = new Set();
+                const zoom = cy.zoom();
+
+                cy.nodes().not(':parent').forEach(node => {
+                    const nodeId = node.id();
+                    activeNodeIds.add(nodeId);
+
+                    let labelElements = nodeLabelElements.get(nodeId);
+                    if (!labelElements) {
+                        const container = document.createElement('div');
+                        const title = document.createElement('div');
+                        const file = document.createElement('div');
+
+                        container.className = 'node-label';
+                        title.className = 'node-label-title';
+                        file.className = 'node-label-file';
+                        container.append(title, file);
+                        labelsContainer.appendChild(container);
+
+                        labelElements = {container, title, file};
+                        nodeLabelElements.set(nodeId, labelElements);
+                    }
+
+                    const position = node.renderedPosition();
+                    const width = node.renderedWidth();
+                    const height = node.renderedHeight();
+                    const fileLabel = node.data('fileLabel') || '';
+
+                    labelElements.title.textContent = node.data('label') || '';
+                    labelElements.file.textContent = fileLabel;
+                    labelElements.file.style.display = fileLabel && showFunctionFileSubtitles() ? 'block' : 'none';
+                    labelElements.container.style.left = `${position.x - (width / 2)}px`;
+                    labelElements.container.style.top = `${position.y - (height / 2)}px`;
+                    labelElements.container.style.width = `${width}px`;
+                    labelElements.container.style.height = `${height}px`;
+                    labelElements.container.style.color = node.style('color');
+                    labelElements.container.style.opacity = node.style('opacity');
+                    labelElements.container.style.display = node.visible() ? 'flex' : 'none';
+                    labelElements.title.style.fontSize = `${12 * zoom}px`;
+                    labelElements.file.style.fontSize = `${9 * zoom}px`;
+                    labelElements.file.style.marginTop = `${2 * zoom}px`;
+                });
+
+                nodeLabelElements.forEach((labelElements, nodeId) => {
+                    if (!activeNodeIds.has(nodeId)) {
+                        labelElements.container.remove();
+                        nodeLabelElements.delete(nodeId);
+                    }
+                });
+            }
+
+            // The dropdown updates only this webview's state and immediately reruns klay.
+            function setupKlayDirectionControl() {
+                const container = document.getElementById('klay-direction-container');
+                const select = document.getElementById('klay-direction-select');
+                const usesKlay = state.config.defaultGraphLayoutAlgorithm === 'klay';
+
+                container.style.display = usesKlay ? 'flex' : 'none';
+                select.value = state.graphSettings.klayDirection;
+                select.onchange = function() {
+                    state.graphSettings = {
+                        ...state.graphSettings,
+                        klayDirection: select.value,
+                    };
+
+                    cy.layout(getLayoutOpts()).run();
+                    vscode.setState(state);
+                };
+            }
+
             // Search functionality
             function setupSearch() {
                 const searchInput = document.getElementById('search-input');
@@ -422,9 +599,10 @@
                     }
 
                     // Find matching nodes
-                    const matchingNodes = cy.nodes().filter(node => {
-                        const label = node.data('label') || '';
-                        return label.toLowerCase().includes(query);
+                    const matchingNodes = cy.nodes().not(':parent').filter(node => {
+                        const functionLabel = node.data('label') || '';
+                        const fileLabel = node.data('fileLabel') || '';
+                        return `${functionLabel} ${fileLabel}`.toLowerCase().includes(query);
                     });
 
                     // Display results
@@ -434,7 +612,9 @@
                         matchingNodes.forEach(node => {
                             const resultItem = document.createElement('div');
                             resultItem.className = 'search-result-item';
-                            resultItem.textContent = node.data('label');
+                            const functionLabel = node.data('label') || '';
+                            const fileLabel = node.data('fileLabel') || '';
+                            resultItem.textContent = [functionLabel, fileLabel].filter(Boolean).join(' — ');
                             resultItem.addEventListener('click', () => {
                                 // Highlight the selected node
                                 resetHighlights();
@@ -480,7 +660,14 @@
             }, layoutDebounce[state.config.defaultGraphLayoutAlgorithm]);
             methods = {
                 setParams: function(newParams) {
-                    state = {...state, ...newParams}
+                    state = {...state, ...newParams};
+                    state.graphSettings = {
+                        ...state.graphSettings,
+                        klayDirection: state.graphSettings?.klayDirection
+                            ?? state.config.defaultKlayDirection
+                            ?? 'DOWN',
+                    };
+
                     vscode.postMessage({
                         type: 'state',
                         data: 'ready',
@@ -505,6 +692,9 @@
             });
 
             const start = function() {
+                document.getElementById('node-labels').replaceChildren();
+                nodeLabelElements.clear();
+
                 cy = cytoscape({
                     container: document.getElementById('cy'),
                     style: getCyStyle(),
@@ -514,8 +704,11 @@
                     maxZoom: 7.5, // TODO: make configurable
                 });
                 cy.layout(getLayoutOpts()).run();
+                cy.on('render', syncNodeLabels);
+                syncNodeLabels();
 
                 // Setup search functionality
+                setupKlayDirectionControl();
                 setupSearch();
 
                 cy.on('tap', function(e) {
