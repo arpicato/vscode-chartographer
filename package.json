@@ -149,6 +149,11 @@
                         "type": "number",
                         "default": 1
                     },
+                    "chartographer.wheelSensitivity": {
+                        "description": "Sensitivity of mouse-wheel and trackpad zooming in the call graph",
+                        "type": "number",
+                        "default": 0.1
+                    },
                     "chartographer.showFileGroupBox": {
                         "description": "Show a visible border and background box around nodes grouped by file. When false (default), the file grouping is used only for layout purposes and is not visually rendered.",
                         "type": "boolean",

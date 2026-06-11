@@ -699,7 +699,7 @@
                     container: document.getElementById('cy'),
                     style: getCyStyle(),
                     elements: state.elems,
-                    wheelSensitivity: 0.5, // TODO: make configurable
+                    wheelSensitivity: state.config.wheelSensitivity ?? 0.1,
                     minZoom: 0.075, // TODO: make configurable
                     maxZoom: 7.5, // TODO: make configurable
                 });

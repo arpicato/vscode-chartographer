@@ -46,6 +46,7 @@ Chartographer relies on the "call hierarchy" feature of an LSP server. So, to us
 | `chartographer.defaultGraphLayoutAlgorithm` | `string` | `"klay"` | Layout algorithm: `klay` (default, hierarchical), `elk`, or `dagre`. |
 | `chartographer.defaultKlayDirection` | `string` | `"DOWN"` | Initial flow direction for new klay graphs: `DOWN` (top-to-bottom), `RIGHT` (left-to-right), `LEFT`, or `UP`. |
 | `chartographer.klaySpacing` | `number` | `1` | Spacing between nodes in the klay layout. |
+| `chartographer.wheelSensitivity` | `number` | `0.1` | Sensitivity of mouse-wheel and trackpad zooming in the call graph. |
 | `chartographer.showFileGroupBox` | `boolean` | `false` | Show a visible border and background box around each file group. When `false`, file grouping is used only for layout; no box is rendered. |
 | `chartographer.showFileGroupLabel` | `boolean` | `false` | Show the formatted filename above each file group. When enabled, the duplicate file subtitle beneath each function name is hidden. |
 | `chartographer.showFunctionFileSubtitle` | `boolean` | `false` | Show the formatted file name beneath each function name. File subtitles remain hidden when file-group labels are enabled. |

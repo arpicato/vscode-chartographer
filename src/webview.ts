@@ -108,6 +108,7 @@ export function setupCallGraph(
         trimFunctionNames: configs.get<boolean>('trimFunctionNames'),
         defaultKlayDirection: configs.get<string>('defaultKlayDirection'),
         klaySpacing: configs.get<number>('klaySpacing'),
+        wheelSensitivity: configs.get<number>('wheelSensitivity'),
         showFileGroupBox: configs.get<boolean>('showFileGroupBox'),
         showFileGroupLabel: configs.get<boolean>('showFileGroupLabel'),
         showFunctionFileSubtitle: configs.get<boolean>('showFunctionFileSubtitle'),
