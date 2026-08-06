@@ -43,7 +43,6 @@ export const buildWebview = (
 
 export const registerWebviewPanelSerializer = (
     context: vscode.ExtensionContext,
-	workspaceRoot: string,
 ) => {
     vscode.window.registerWebviewPanelSerializer(`Chartographer.previewCallGraph`,
         {
@@ -55,6 +54,15 @@ export const registerWebviewPanelSerializer = (
                     return
                 }
 
+                const roots = vscode.workspace.workspaceFolders?.map((f) => f.uri.toString()) ?? []
+                const workspaceRoot = roots.length > 0
+                    ? [...roots].sort().reduce((prefix, str) => {
+                        let i = 0
+                        while (i < prefix.length && prefix[i] === str[i]) i++
+                        return prefix.slice(0, i)
+                      }, roots[0])
+                    : ''
+
                 const { handler, html } = setupCallGraph(context, workspaceRoot, webviewPanel, undefined, state)
 
                 webviewPanel.webview.html = html
@@ -65,7 +73,11 @@ export const registerWebviewPanelSerializer = (
 }
 
 export async function getSelectedFunctions() {
-	const activeTextEditor = vscode.window.activeTextEditor!
+	const activeTextEditor = vscode.window.activeTextEditor
+    if (!activeTextEditor) {
+        vscode.window.showErrorMessage('No active editor. Open a file first.')
+        return []
+    }
 	const entry: vscode.CallHierarchyItem[] = await vscode.commands.executeCommand(
 		'vscode.prepareCallHierarchy',
 		activeTextEditor.document.uri,

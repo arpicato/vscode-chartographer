@@ -123,7 +123,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     checkChangelog(context)
 
-    registerWebviewPanelSerializer(context, workspaceRoot)
+    registerWebviewPanelSerializer(context)
 
     registerCommands(context, workspaceRoot)
 }
