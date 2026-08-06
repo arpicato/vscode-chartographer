@@ -217,6 +217,7 @@
         "typecheck": "tsc --noEmit",
         "watch": "tsc -watch -p ./",
         "compile:tests": "tsc -p tsconfig.test.json",
+        "lint": "eslint src --ext ts",
         "pretest": "npm run build && npm run compile:tests && npm run lint",
         "test": "node ./out/test/runTest.js",
         "test:unit": "mocha out/test/suite/graph.test.js",
