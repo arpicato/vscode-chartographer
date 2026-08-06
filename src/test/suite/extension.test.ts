@@ -13,13 +13,7 @@ suite('Extension', () => {
         const commands = await vscode.commands.getCommands(true)
         const expected = [
             'Chartographer.addHierarchy',
-            'Chartographer.showAllCallGraph',
-            'Chartographer.showAllIncomingCallGraph',
-            'Chartographer.showAllOutgoingCallGraph',
             'Chartographer.showCallGraph',
-            'Chartographer.showIncomingCallGraph',
-            'Chartographer.showOutgoingCallGraph',
-            'Chartographer.showCallGraphCustomDepth',
             'Chartographer.showOutputChannel',
         ]
         for (const cmd of expected) {
