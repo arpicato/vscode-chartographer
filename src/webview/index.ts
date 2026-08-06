@@ -24,7 +24,11 @@ const previousState = vscode.getState()
 let state: WebviewState = previousState || {
     config: {},
     elems: [],
+    hiddenNodes: [],
 }
+
+let expandedNodes: Set<string> = new Set()
+let lastBatchIds: string[] = []
 
 const layoutDebounce: Record<string, number> = {
     klay: 5,
@@ -317,6 +321,8 @@ const methods: {
     },
     addElems(msg) {
         state.elems = state.elems.concat(msg.data)
+        const ids = msg.data.map(e => e.data?.id).filter((id): id is string => !!id)
+        lastBatchIds = ids
         cy?.add(msg.data)
         resetRootHighlights()
         resetLeafHighlights()
@@ -350,6 +356,46 @@ function isShiftClick(evt: cytoscape.EventObject): boolean {
     return e?.shiftKey || false
 }
 
+function showHidden(): void {
+    if (!cy) return
+    const hidden = state.hiddenNodes
+    if (hidden.length === 0) return
+
+    const toRestore = state.elems.filter(e => e.data?.id && hidden.includes(e.data.id))
+    cy.add(toRestore)
+    state.hiddenNodes = []
+    vscode.setState(state)
+    debouncedLayout()
+}
+
+function hideNode(id: string): void {
+    if (!cy) return
+    const node = cy.getElementById(id)
+    if (node.length === 0) return
+
+    const connected = node.connectedEdges()
+    cy.remove(node.add(connected))
+    state.hiddenNodes.push(id)
+    state.elems = state.elems.filter(e => e.data?.id !== id)
+    vscode.setState(state)
+}
+
+function collapseLastBatch(): void {
+    if (!cy || lastBatchIds.length === 0) return
+    const toRemove = cy.collection()
+    for (const id of lastBatchIds) {
+        const el = cy.getElementById(id)
+        if (el.length > 0) toRemove.merge(el)
+    }
+    const edges = toRemove.connectedEdges()
+    cy.remove(toRemove.merge(edges as any))
+    const idSet = new Set(lastBatchIds)
+    state.elems = state.elems.filter(e => e.data?.id && !idSet.has(e.data.id))
+    lastBatchIds = []
+    vscode.setState(state)
+    debouncedLayout()
+}
+
 function start(): void {
     const container = document.getElementById('cy')
     if (!container) return
@@ -366,6 +412,9 @@ function start(): void {
     cy!.layout(getLayoutOpts()).run()
 
     setupSearch()
+
+    document.getElementById('reset-zoom')?.addEventListener('click', () => cy?.fit())
+    document.getElementById('show-hidden')?.addEventListener('click', showHidden)
 
     cy!.on('tap', function (e) {
         if (e.target === cy) {
@@ -385,16 +434,23 @@ function start(): void {
         }
 
         if (isAltClick(e)) {
-            if (isShiftClick(e)) {
-                vscode.postMessage({
-                    type: 'expandBoth',
-                    data: { id: node.id(), depth: -1 },
-                })
+            const nodeId = node.id()
+            if (expandedNodes.has(nodeId)) {
+                expandedNodes.delete(nodeId)
+                collapseLastBatch()
             } else {
-                vscode.postMessage({
-                    type: 'expandBoth',
-                    data: { id: node.id(), depth: 1 },
-                })
+                expandedNodes.add(nodeId)
+                if (isShiftClick(e)) {
+                    vscode.postMessage({
+                        type: 'expandBoth',
+                        data: { id: nodeId, depth: -1 },
+                    })
+                } else {
+                    vscode.postMessage({
+                        type: 'expandBoth',
+                        data: { id: nodeId, depth: 1 },
+                    })
+                }
             }
             return
         }
@@ -424,6 +480,13 @@ function start(): void {
             node.children().data('isHighlighted', false)
             cy!.nodes().removeClass(['highlightedNode', 'dimmedNode'])
             cy!.edges().removeClass(['highlightedEdge', 'dimmedEdge'])
+        }
+    })
+
+    cy!.on('cxttap', 'node', function (e) {
+        const node = e.target
+        if (confirm(`Hide "${node.data('label')}" and its connections?`)) {
+            hideNode(node.id())
         }
     })
 }

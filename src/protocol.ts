@@ -30,6 +30,7 @@ export interface ChartographerConfig {
 export interface WebviewState {
     config: ChartographerConfig
     elems: cytoscape.ElementDefinition[]
+    hiddenNodes: string[]
 }
 
 export type WebviewToExtensionMessage =

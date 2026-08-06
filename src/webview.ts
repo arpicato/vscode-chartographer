@@ -7,6 +7,7 @@ import { ChartographerConfig, Direction, LayoutAlgorithm, WebviewToExtensionMess
 
 type State = {
     elems: Element[],
+    hiddenNodes: string[],
 }
 
 type Params = {

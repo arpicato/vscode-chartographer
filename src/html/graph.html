@@ -69,6 +69,28 @@
                 text-align: center;
             }
 
+            #show-hidden {
+                position: absolute;
+                top: 10px;
+                left: 175px;
+                cursor: pointer;
+                z-index: 20;
+                font-size: 12px;
+                color: rgba(255, 255, 255, 0.5);
+                width: 100px;
+                height: 40px;
+                background-color: rgba(0, 0, 0, 0.3);
+                border-radius: 10px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                text-align: center;
+            }
+
+            #show-hidden:hover {
+                background-color: rgba(255, 255, 255, 0.1);
+            }
+
             #search-container {
                 position: absolute;
                 top: 10px;
@@ -126,7 +148,9 @@
             <div id="hide-text">Click to hide</div>
         </div>
 
-        <div id="reset-zoom" onclick="cy.fit()">Reset Zoom</div>
+        <div id="reset-zoom">Reset Zoom</div>
+
+        <div id="show-hidden">Show Hidden</div>
 
         <div id="search-container">
             <input type="text" id="search-input" placeholder="Search nodes..." />
