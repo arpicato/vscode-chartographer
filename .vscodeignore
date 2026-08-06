@@ -1,7 +1,7 @@
 .vscode/**
 .vscode-test/**
 src/**
-out/test
+out/**
 .gitignore
 .yarnrc
 vsc-extension-quickstart.md
@@ -11,5 +11,7 @@ vsc-extension-quickstart.md
 **/*.ts
 .history
 static/**
+esbuild.config.mjs
 !src/html/*.html
-!src/libs/**
+!out/extension.js
+!out/webview.js

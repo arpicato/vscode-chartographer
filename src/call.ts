@@ -1,8 +1,6 @@
-import { CallHierarchyItem } from 'vscode'
 import * as vscode from 'vscode'
-import { printChannelOutput } from './extension'
+import { printChannelOutput } from './logger'
 import { minimatch } from 'minimatch'
-import EventEmitter = require('events')
 import * as fs from 'fs'
 import * as path from 'path'
 
@@ -17,33 +15,29 @@ function getGitignorePatterns(workspaceRoot: string): string[] {
         .split('\n')
         .map(line => line.trim())
         .filter(line => line && !line.startsWith('#'))
-        // .map(pattern => {
-        //     // Convert .gitignore patterns to minimatch patterns
-        //     if (pattern.startsWith('/')) {
-        //         // Remove leading slash for relative paths
-        //         pattern = pattern.slice(1)
-        //     }
-        //     if (pattern.endsWith('/')) {
-        //         // Add ** to match all files in directory
-        //         pattern = pattern + '**'
-        //     }
-        //     if (!pattern.startsWith('*') && !pattern.includes('/')) {
-        //         // Add **/ prefix to match files in any directory
-        //         pattern = '**/' + pattern
-        //     }
-        //     return pattern
-        // })
+        .map(pattern => {
+            if (pattern.startsWith('/')) {
+                pattern = pattern.slice(1)
+            }
+            if (pattern.endsWith('/')) {
+                pattern = pattern + '**'
+            }
+            if (!pattern.startsWith('*') && !pattern.includes('/')) {
+                pattern = '**/' + pattern
+            }
+            return pattern
+        })
 }
 
 export interface CallHierarchy {
-    item: CallHierarchyItem
-    from?: CallHierarchyItem
-    to?: CallHierarchyItem
+    item: vscode.CallHierarchyItem
+    from?: vscode.CallHierarchyItem
+    to?: vscode.CallHierarchyItem
 }
 
 export async function getCallHierarchy(
     direction: 'Incoming' | 'Outgoing' | 'Both',
-    root: CallHierarchyItem,
+    root: vscode.CallHierarchyItem,
     addEdge: (edge: CallHierarchy) => void,
     maxDepth: number = -1,
 ) {
@@ -72,7 +66,7 @@ export async function getCallHierarchy(
     const command = direction === 'Outgoing' ? 'vscode.provideOutgoingCalls' : 'vscode.provideIncomingCalls'
     const visited: { [key: string]: boolean } = {};
 
-    const traverse = async (node: CallHierarchyItem, depth: number = 0) => {
+    const traverse = async (node: vscode.CallHierarchyItem, depth: number = 0) => {
         // Stop traversal if we've reached the maximum depth
         if (maxDepth !== -1 && depth >= maxDepth) {
             return;
@@ -88,7 +82,7 @@ export async function getCallHierarchy(
             | vscode.CallHierarchyIncomingCall[] = await vscode.commands.executeCommand(command, node)
 
         await Promise.all(calls.map(async (call) => {
-            let next: CallHierarchyItem
+            let next: vscode.CallHierarchyItem
             let edge: CallHierarchy
             if (call instanceof vscode.CallHierarchyOutgoingCall) {
                 edge = { item: node, to: call.to }
@@ -129,14 +123,4 @@ export async function getCallHierarchy(
     }
 
     await traverse(root)
-}
-
-function isEqual(a: CallHierarchyItem, b: CallHierarchyItem) {
-    return (
-        a.name === b.name &&
-        a.kind === b.kind &&
-        a.uri.toString() === b.uri.toString() &&
-        a.selectionRange.start.line === b.range.start.line &&
-        a.selectionRange.start.character === b.selectionRange.start.character
-    )
 }

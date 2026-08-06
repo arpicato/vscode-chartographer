@@ -1,6 +1,7 @@
 import * as vscode from 'vscode'
 import { buildWebview, getSelectedFunctions, lastFocusedPanel, registerWebviewPanelSerializer } from './webview'
 import { getCyNodes, getNode } from './graph'
+import { initLogger, printChannelOutput } from './logger'
 import * as path from "path";
 
 const getDefaultProgressOptions = (title: string): vscode.ProgressOptions => {
@@ -16,11 +17,10 @@ function findLongestCommonPrefix(strs: string[]): string {
         return "";
     }
 
-    // Sort the array to bring potentially common prefixes together
-    strs.sort();
+    const sorted = [...strs].sort();
 
-    const firstStr = strs[0];
-    const lastStr = strs[strs.length - 1];
+    const firstStr = sorted[0];
+    const lastStr = sorted[sorted.length - 1];
     let prefix = "";
 
     for (let i = 0; i < firstStr.length; i++) {
@@ -172,18 +172,17 @@ function registerCommands(context: vscode.ExtensionContext, workspaceRoot: strin
     const showOutputChannelDisposable = vscode.commands.registerCommand(
         'Chartographer.showOutputChannel',
         () => {
-            outputChannel.show(true)
+            printChannelOutput('Chartographer output channel', true)
         }
     )
     context.subscriptions.push(showOutputChannelDisposable)
 }
 
-let outputChannel: vscode.OutputChannel;
 export function activate(context: vscode.ExtensionContext) {
     const roots = vscode.workspace.workspaceFolders?.map((f) => f.uri.toString()) ?? []
     const workspaceRoot = findLongestCommonPrefix(roots)
 
-    outputChannel = vscode.window.createOutputChannel("Chartographer");
+    initLogger(context)
 
     checkChangelog(context)
 
@@ -192,15 +191,4 @@ export function activate(context: vscode.ExtensionContext) {
     registerCommands(context, workspaceRoot)
 }
 
-/**
- * Prints the given content on the output channel.
- *
- * @param content The content to be printed.
- * @param reveal Whether the output channel should be revealed.
- */
-export const printChannelOutput = (content: string, reveal = false): void => {
-    outputChannel.appendLine(content);
-    if (reveal) {
-        outputChannel.show(true);
-    }
-};
+export function deactivate() {}
