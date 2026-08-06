@@ -2,28 +2,14 @@ import cytoscape, { Core } from 'cytoscape'
 import cytoscapeDagre from 'cytoscape-dagre'
 import cytoscapeElk from 'cytoscape-elk'
 import cytoscapeKlay from 'cytoscape-klay'
+import { ChartographerConfig, WebviewToExtensionMessage, ExtensionToWebviewMessage, WebviewState } from '../protocol'
 
 cytoscape.use(cytoscapeDagre)
 cytoscape.use(cytoscapeElk)
 cytoscape.use(cytoscapeKlay)
 
-interface Config {
-    highlightRoots?: boolean
-    highlightLeaves?: boolean
-    defaultGraphLayoutAlgorithm?: 'klay' | 'elk' | 'dagre'
-    colorScheme?: string
-    nodeDisplayFormat?: string
-    trimFunctionNames?: boolean
-    colors?: Record<string, string>
-}
-
-interface WebviewState {
-    config: Config
-    elems: cytoscape.ElementDefinition[]
-}
-
 interface VsCodeApi {
-    postMessage(message: unknown): void
+    postMessage(message: WebviewToExtensionMessage): void
     getState(): WebviewState | null
     setState(state: WebviewState): void
 }
@@ -321,16 +307,17 @@ const debouncedLayout = debounce(() => {
     vscode.setState(state)
 }, layoutDebounce[state.config.defaultGraphLayoutAlgorithm || 'dagre'])
 
-const methods: Record<string, (data: unknown) => void> = {
-    setParams(newParams: unknown) {
-        state = { ...state, ...(newParams as Partial<WebviewState>) }
+const methods: {
+    [K in ExtensionToWebviewMessage['type']]: (msg: Extract<ExtensionToWebviewMessage, { type: K }>) => void
+} = {
+    setParams(msg) {
+        state = { ...state, config: msg.data.config }
         vscode.postMessage({ type: 'state', data: 'ready' })
         start()
     },
-    addElems(newElems: unknown) {
-        const elems = newElems as cytoscape.ElementDefinition[]
-        state.elems = state.elems.concat(elems)
-        cy?.add(elems)
+    addElems(msg) {
+        state.elems = state.elems.concat(msg.data)
+        cy?.add(msg.data)
         resetRootHighlights()
         resetLeafHighlights()
         resetHighlights()
@@ -339,10 +326,10 @@ const methods: Record<string, (data: unknown) => void> = {
 }
 
 window.addEventListener('message', event => {
-    const message = event.data as { type: string; data: unknown }
+    const message = event.data as ExtensionToWebviewMessage
     const handler = methods[message.type]
     if (handler) {
-        handler(message.data)
+        handler(message as any)
     }
 })
 
