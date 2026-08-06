@@ -107,15 +107,10 @@
                         "type": "string"
                     },
                     "chartographer.trimFunctionPattern": {
-                        "description": "Regex pattern to extract a clean function name. First match group is used as the display name. Empty = no trimming.",
+                        "description": "Regex to extract a clean function name. First match is used as the display name. Empty = no trimming.",
                         "type": "string",
                         "default": "",
-                        "examples": [
-                            "^[a-zA-Z_$][a-zA-Z0-9_$]*",
-                            "^[a-zA-Z]+",
-                            "^[^<(]+"
-                        ],
-                        "markdownDescription": "Regex to extract trimmed function name. Examples:\n- `^[a-zA-Z_$][a-zA-Z0-9_$]*` — strip generics like `process<T>` → `process`\n- `^[a-zA-Z]+` — strip digits and symbols: `level1` → `level`\n- `^[^<(]+` — strip anything after `<` or `(`: `foo<T>(x)` → `foo`"
+                        "markdownDescription": "Regex to extract a clean function name. The first match at position 0 replaces the full name. Empty = no trimming.\n\nCommon patterns:\n- `^[a-zA-Z_$][a-zA-Z0-9_$]*` — extract first identifier. Strips generics `process<T>` → `process`, params `handleClick (e)` → `handleClick`, namespaces `foo.bar` → `foo`\n- `^[a-zA-Z]+` — strip after first non-alpha. `level1` → `level`, `getData` → `getData`\n- `^[^<(]+` — strip at first `<` or `(`. `foo<T>(x)` → `foo`, `bar (x)` → `bar`"
                     }
                 }
             },

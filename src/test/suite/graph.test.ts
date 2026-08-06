@@ -100,12 +100,16 @@ suite('trimFunctionName', () => {
         assert.strictEqual(trimFunctionName('my_function', identifierPattern), 'my_function')
     })
 
-    test('strips generic parameters', () => {
+    test('extracts first identifier (strips generics)', () => {
         assert.strictEqual(trimFunctionName('process<T>', identifierPattern), 'process')
     })
 
-    test('strips parenthesized suffix', () => {
+    test('extracts first identifier (strips params)', () => {
         assert.strictEqual(trimFunctionName('handleClick (event)', identifierPattern), 'handleClick')
+    })
+
+    test('extracts first identifier (strips namespace)', () => {
+        assert.strictEqual(trimFunctionName('foo.bar', identifierPattern), 'foo')
     })
 
     test('returns unchanged when no match', () => {
