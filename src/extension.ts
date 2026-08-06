@@ -62,7 +62,7 @@ function registerCommands(context: vscode.ExtensionContext, workspaceRoot: strin
                 const configs = vscode.workspace.getConfiguration('chartographer')
                 const config = {
                     nodeDisplayFormat: configs.get<string>('nodeDisplayFormat'),
-                    trimFunctionNames: configs.get<boolean>('trimFunctionNames'),
+                    trimFunctionPattern: configs.get<string>('trimFunctionPattern'),
                 }
                 lastFocusedPanel.addElems(
                     entries.flatMap((entry) => getCyNodes(getNode(workspaceRoot, entry), config))

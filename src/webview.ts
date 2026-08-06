@@ -112,7 +112,7 @@ export function setupCallGraph(
         defaultGraphLayoutAlgorithm: configs.get<string>('defaultGraphLayoutAlgorithm') as LayoutAlgorithm | undefined,
         colorScheme: configs.get<string>('colorScheme'),
         nodeDisplayFormat: configs.get<string>('nodeDisplayFormat'),
-        trimFunctionNames: configs.get<boolean>('trimFunctionNames'),
+        trimFunctionPattern: configs.get<string>('trimFunctionPattern'),
         colors: {
             nodeBackgroundColor: configs.get<string>('colors.nodeBackgroundColor'),
             nodeColor: configs.get<string>('colors.nodeColor'),

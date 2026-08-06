@@ -9,7 +9,7 @@ export interface ChartographerConfig {
     defaultGraphLayoutAlgorithm?: LayoutAlgorithm
     colorScheme?: string
     nodeDisplayFormat?: string
-    trimFunctionNames?: boolean
+    trimFunctionPattern?: string
     colors?: {
         nodeBackgroundColor?: string
         nodeColor?: string

@@ -75,29 +75,57 @@ suite('formatFileLabel', () => {
 })
 
 suite('trimFunctionName', () => {
-    function trimFunctionName(name: string): string {
-        const match = name.match(/^[a-zA-Z]+/);
-        return match ? match[0] : name;
+    function trimFunctionName(name: string, pattern: string): string {
+        if (!pattern) return name
+        try {
+            const re = new RegExp(pattern)
+            const match = name.match(re)
+            return match ? match[0] : name
+        } catch {
+            return name
+        }
     }
 
-    test('trims at first non-alpha character', () => {
-        assert.strictEqual(trimFunctionName('getDataAsync'), 'getDataAsync')
+    const identifierPattern = '^[a-zA-Z_$][a-zA-Z0-9_$]*'
+
+    test('keeps alphanumeric names', () => {
+        assert.strictEqual(trimFunctionName('getDataAsync', identifierPattern), 'getDataAsync')
+    })
+
+    test('keeps names with digits', () => {
+        assert.strictEqual(trimFunctionName('level1', identifierPattern), 'level1')
+    })
+
+    test('keeps names with underscores', () => {
+        assert.strictEqual(trimFunctionName('my_function', identifierPattern), 'my_function')
     })
 
     test('strips generic parameters', () => {
-        assert.strictEqual(trimFunctionName('process<T>'), 'process')
+        assert.strictEqual(trimFunctionName('process<T>', identifierPattern), 'process')
     })
 
     test('strips parenthesized suffix', () => {
-        assert.strictEqual(trimFunctionName('handleClick (event)'), 'handleClick')
+        assert.strictEqual(trimFunctionName('handleClick (event)', identifierPattern), 'handleClick')
     })
 
-    test('returns unchanged when no non-alpha prefix', () => {
-        assert.strictEqual(trimFunctionName('123abc'), '123abc')
+    test('returns unchanged when no match', () => {
+        assert.strictEqual(trimFunctionName('123abc', identifierPattern), '123abc')
     })
 
-    test('handles empty string', () => {
-        assert.strictEqual(trimFunctionName(''), '')
+    test('handles empty pattern (no trimming)', () => {
+        assert.strictEqual(trimFunctionName('level1', ''), 'level1')
+    })
+
+    test('handles invalid regex gracefully', () => {
+        assert.strictEqual(trimFunctionName('level1', '[invalid'), 'level1')
+    })
+
+    test('custom regex: strip after first alpha', () => {
+        assert.strictEqual(trimFunctionName('level1', '^[a-zA-Z]+'), 'level')
+    })
+
+    test('custom regex: strip after < or (', () => {
+        assert.strictEqual(trimFunctionName('foo<T>(x)', '^[^<(]+'), 'foo')
     })
 })
 

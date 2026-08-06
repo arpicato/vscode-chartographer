@@ -16,13 +16,21 @@ export const getNode = (workspaceRoot: string, n: vscode.CallHierarchyItem) => {
     } as Node;
 }
 
-function trimFunctionName(name: string): string {
-    const match = name.match(/^[a-zA-Z]+/);
-    return match ? match[0] : name;
+function trimFunctionName(name: string, pattern: string): string {
+    if (!pattern) return name
+    try {
+        const re = new RegExp(pattern)
+        const match = name.match(re)
+        return match ? match[0] : name
+    } catch {
+        return name
+    }
 }
 
 export const getCyNodes = (n: Node, config?: ChartographerConfig) => {
-    const nodeName = config?.trimFunctionNames ? trimFunctionName(n.name) : n.name;
+    const nodeName = config?.trimFunctionPattern
+        ? trimFunctionName(n.name, config.trimFunctionPattern)
+        : n.name;
     return [
         {
             group: 'nodes',
