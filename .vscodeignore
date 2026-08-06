@@ -11,5 +11,6 @@ vsc-extension-quickstart.md
 **/*.ts
 .history
 static/**
+esbuild.config.mjs
 !src/html/*.html
 !out/webview.js

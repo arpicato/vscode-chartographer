@@ -9,7 +9,7 @@ async function main() {
         format: 'iife',
         globalName: 'ChartographerWebview',
         sourcemap: true,
-        minify: false,
+        minify: true,
     })
 }
 
