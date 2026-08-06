@@ -1,6 +1,7 @@
 import { CallHierarchy } from "./call"
 import * as vscode from 'vscode'
 import * as path from 'path'
+import { ChartographerConfig } from './protocol'
 
 export const getNode = (workspaceRoot: string, n: vscode.CallHierarchyItem) => {
     // Create a node with a name based on the URI, item name, and range.
@@ -20,7 +21,7 @@ function trimFunctionName(name: string): string {
     return match ? match[0] : name;
 }
 
-export const getCyNodes = (n: Node, config?: any) => {
+export const getCyNodes = (n: Node, config?: ChartographerConfig) => {
     const nodeName = config?.trimFunctionNames ? trimFunctionName(n.name) : n.name;
     return [
         {
@@ -57,7 +58,7 @@ export const getCyNodes = (n: Node, config?: any) => {
  * - $fileName: Just the file name
  * - $fileExt: Just the file extension
  */
-export function formatFileLabel(filePath: string, config?: any): string {
+export function formatFileLabel(filePath: string, config?: ChartographerConfig): string {
     // If no config or no nodeDisplayFormat, return the original path
     if (!config || !config.nodeDisplayFormat) {
         return filePath;
@@ -86,7 +87,7 @@ export function formatFileLabel(filePath: string, config?: any): string {
         .replace(/\$path/g, pathWithoutFile);
 }
 
-export function getCyElems(workspaceRoot: string, edge: CallHierarchy, config?: any) {
+export function getCyElems(workspaceRoot: string, edge: CallHierarchy, config?: ChartographerConfig) {
     const elems: Element[] = []
 
     // Iterate through the children of the CallHierarchy.

@@ -3,13 +3,14 @@ import { CyNode, Element, getCyElems } from './graph'
 import { resolveHtml } from './html'
 import { CallHierarchy, getCallHierarchy as buildGraph } from './call'
 import { printChannelOutput } from './logger'
+import { ChartographerConfig, Direction, LayoutAlgorithm, WebviewToExtensionMessage, ExtensionToWebviewMessage } from './protocol'
 
 type State = {
     elems: Element[],
 }
 
 type Params = {
-    direction: 'Incoming' | 'Outgoing' | 'Both',
+    direction: Direction,
     entryPoints: vscode.CallHierarchyItem[],
     maxDepth?: number,
 }
@@ -93,10 +94,10 @@ export function setupCallGraph(
     const html = resolveHtml(context, panel)
 
     const configs = vscode.workspace.getConfiguration('chartographer')
-    const config = {
+    const config: ChartographerConfig = {
         highlightRoots: configs.get<boolean>('highlightRoots'),
         highlightLeaves: configs.get<boolean>('highlightLeaves'),
-        defaultGraphLayoutAlgorithm: configs.get<string>('defaultGraphLayoutAlgorithm'),
+        defaultGraphLayoutAlgorithm: configs.get<string>('defaultGraphLayoutAlgorithm') as LayoutAlgorithm | undefined,
         colorScheme: configs.get<string>('colorScheme'),
         nodeDisplayFormat: configs.get<string>('nodeDisplayFormat'),
         trimFunctionNames: configs.get<boolean>('trimFunctionNames'),
@@ -125,27 +126,27 @@ export function setupCallGraph(
             if (nodes[node.data.id]) continue
             nodes[node.data.id] = node
         }
-        panel.webview.postMessage({
+        const msg: ExtensionToWebviewMessage = {
             type: 'addElems',
             data: elems,
-        })
+        }
+        panel.webview.postMessage(msg)
     }
     const addEdge = (edge: CallHierarchy) => {
         const elems = getCyElems(workspaceRoot, edge, config)
         addElems(elems)
     }
 
-    const handler = async (msg: any) => {
+    const handler = async (msg: WebviewToExtensionMessage) => {
         switch (msg.type) {
             case 'state':
                 switch (msg.data) {
                     case 'loaded':
-                        panel.webview.postMessage({
+                        const setParamsMsg: ExtensionToWebviewMessage = {
                             type: 'setParams',
-                            data: {
-                                config,
-                            },
-                        })
+                            data: { config },
+                        }
+                        panel.webview.postMessage(setParamsMsg)
                         break
 
                     case 'ready':
@@ -165,10 +166,11 @@ export function setupCallGraph(
                                 if (nodes[node.data.id]) continue
                                 nodes[node.data.id] = node
                             }
-                            panel.webview.postMessage({
+                            const addElemsMsg: ExtensionToWebviewMessage = {
                                 type: 'addElems',
                                 data: state.elems,
-                            })
+                            }
+                            panel.webview.postMessage(addElemsMsg)
                         }
                         break
                 }
