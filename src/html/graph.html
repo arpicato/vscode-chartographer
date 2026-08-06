@@ -25,10 +25,10 @@
 
             #hide-text {
                 text-align: center;
-                color: rgba(255, 255, 255, 0.5); /* Darkened text color */
+                color: rgba(255, 255, 255, 0.5);
                 font-size: 8px;
-                text-decoration: underline; /* Underline the text */
-                margin-top: 5px; /* Add some top margin for spacing */
+                text-decoration: underline;
+                margin-top: 5px;
             }
 
             #question-mark {
@@ -37,10 +37,8 @@
                 left: 10px;
                 cursor: pointer;
                 z-index: 20;
-
                 font-size: 20px;
                 color: rgba(255, 255, 255, 0.5);
-
                 width: 40px;
                 height: 40px;
                 background-color: rgba(0, 0, 0, 0.3);
@@ -59,10 +57,8 @@
                 left: 65px;
                 cursor: pointer;
                 z-index: 20;
-
                 font-size: 12px;
                 color: rgba(255, 255, 255, 0.5);
-
                 width: 100px;
                 height: 40px;
                 background-color: rgba(0, 0, 0, 0.3);
@@ -118,22 +114,8 @@
         </style>
     </head>
     <body>
-        <script>
-            // Function to toggle the visibility of instructions
-            function toggleInstructions() {
-                const instructions = document.getElementById("instructions");
-                if (instructions.style.display === "none" || instructions.style.display === "") {
-                    instructions.style.display = "block";
-                } else {
-                    instructions.style.display = "none";
-                }
-            }
-        </script>
-
-        <!-- Question Mark Button -->
         <div id="question-mark" onclick="toggleInstructions()">&#63;</div>
 
-        <!-- Instructions (Initially hidden) -->
         <div id="instructions" style="display: none;" onclick="toggleInstructions()">
             <p>Ctrl/Cmd + Left Click to go to function</p>
             <p>Left Click to highlight connections</p>
@@ -146,7 +128,6 @@
 
         <div id="reset-zoom" onclick="cy.fit()">Reset Zoom</div>
 
-        <!-- Search Bar -->
         <div id="search-container">
             <input type="text" id="search-input" placeholder="Search nodes..." />
             <div id="search-results"></div>
@@ -154,457 +135,17 @@
 
         <div id="cy" style="height:100vh"></div>
 
-        <script src="{{libsURI}}/cytoscape@3.31.1/dist/cytoscape.min.js"></script>
-
-        <script src="{{libsURI}}/klayjs@0.4.1/klay.js"></script>
-        <script src="{{libsURI}}/cytoscape-klay@3.1.3/cytoscape-klay.min.js"></script>
-
-        <script src="{{libsURI}}/elkjs@0.8.1/lib/elk.bundled.js"></script>
-        <script src="{{libsURI}}/cytoscape-elk@2.2.0/dist/cytoscape-elk.min.js"></script>
-
-        <script src="{{libsURI}}/dagre@0.8.2/dist/dagre.js"></script>
-        <script src="{{libsURI}}/cytoscape-dagre@2.5.0/cytoscape-dagre.min.js"></script>
-
         <script>
-            // Debounce function
-            function debounce(func, delay) {
-                let timer;
-                return function() {
-                    clearTimeout(timer);
-                    timer = setTimeout(func, delay);
+            function toggleInstructions() {
+                const instructions = document.getElementById("instructions");
+                if (instructions.style.display === "none" || instructions.style.display === "") {
+                    instructions.style.display = "block";
+                } else {
+                    instructions.style.display = "none";
                 }
-            }
-
-            const vscode = acquireVsCodeApi();
-            const isMac = navigator.platform.toUpperCase().indexOf('MAC')>=0;
-            let cy = null
-            const previousState = vscode.getState();
-            let state = previousState || {
-                config: {},
-				elems: [],
-			}
-
-            const layoutDebounce = {
-                klay: 5,
-                elk: 500,
-                dagre: 5,
-            }
-
-            const getLayoutOpts = () => {
-                return {
-                    name: state.config.defaultGraphLayoutAlgorithm,
-                    animate: true,
-                    animationDuration: 250,
-                    klay: {
-                        addUnnecessaryBendpoints: false,
-                        direction: 'RIGHT',
-                        layoutHierarchy: true,
-                        spacing: 40,
-                        compactComponents: true,
-                        spacing: 5,
-                        thoroughness: 10,
-                        edgeSpacingFactor: 0.5,
-                        inLayerSpacingFactor: 2,
-                    },
-                    elk: {
-                        algorithm: 'layered',
-                        //'elk.direction': 'RIGHT',
-                    },
-                    // dagre
-                    rankDir: 'LR',
-                    ranker: 'network-simplex',
-                }
-            }
-
-            // Define color schemes
-            const colorSchemes = {
-                "default": {
-                    node: {
-                        backgroundColor: '--vscode-menu-background',
-                        color: '--vscode-menu-foreground',
-                        borderColor: '--vscode-editor-foreground'
-                    },
-                    highlightedLeafNode: {
-                        backgroundColor: '--vscode-editorWarning-background',
-                        color: '--vscode-editorWarning-foreground'
-                    },
-                    highlightedRootNode: {
-                        backgroundColor: '--vscode-editorError-background',
-                        color: '--vscode-editorError-foreground'
-                    },
-                    compound: {
-                        backgroundColor: '--vscode-editor-background'
-                    },
-                    edge: {
-                        lineColor: '--vscode-editor-foreground',
-                        arrowColor: '--vscode-editor-foreground'
-                    },
-                    searchHighlight: {
-                        backgroundColor: '--vscode-editor-selectionBackground',
-                        color: '--vscode-editor-selectionForeground',
-                        borderColor: '--vscode-focusBorder'
-                    }
-                },
-                "highContrast": {
-                    node: {
-                        backgroundColor: '#000000',
-                        color: '#FFFFFF',
-                        borderColor: '#FFFFFF'
-                    },
-                    highlightedLeafNode: {
-                        backgroundColor: '#0000FF',
-                        color: '#FFFFFF'
-                    },
-                    highlightedRootNode: {
-                        backgroundColor: '#FF0000',
-                        color: '#FFFFFF'
-                    },
-                    compound: {
-                        backgroundColor: '#000000'
-                    },
-                    edge: {
-                        lineColor: '#FFFFFF',
-                        arrowColor: '#FFFFFF'
-                    },
-                    searchHighlight: {
-                        backgroundColor: '#FFFF00',
-                        color: '#000000',
-                        borderColor: '#FFFFFF'
-                    }
-                }
-            };
-
-			const getCyStyle = () => {
-                const style = getComputedStyle(document.body);
-                const getStyle = (name) => style.getPropertyValue(name);
-                
-                // Get the selected color scheme
-                const selectedScheme = state.config.colorScheme || 'default';
-                const colors = colorSchemes[selectedScheme];
-
-                // Override colors with configuration options
-                const overrides = state.config.colors || {};
-                
-                // Helper function to get color value (either from CSS variable or direct color)
-                const getColor = (colorValue, overrideValue) => {
-                    if (overrideValue) {
-                        return overrideValue;
-                    }
-                    return colorValue.startsWith('--') ? getStyle(colorValue) : colorValue;
-                };
-                
-				return [
-					{
-						selector: 'node',
-						style: {
-							'font-size': '12px',
-							'background-color': getColor(colors.node.backgroundColor, overrides.nodeBackgroundColor),
-							'color': getColor(colors.node.color, overrides.nodeColor),
-							'width': 'label',
-							'padding': '5px',
-							'border-color': getColor(colors.node.borderColor, overrides.nodeBorderColor),
-							'border-width': 1,
-							'shape': 'roundrectangle',
-							'label': 'data(label)',
-							'text-halign': 'center',
-							'text-valign': 'center',
-						}
-					},
-					{
-						selector: '.dimmedNode',
-						style: {
-							'opacity': 0.5,
-						}
-					},
-					{
-						selector: '.highlightedNode',
-						style: {
-							'opacity': 1,
-						}
-					},
-					{
-						selector: '.highlightedLeafNode',
-						style: {
-							'background-color': getColor(colors.highlightedLeafNode.backgroundColor, overrides.highlightedLeafNodeBackgroundColor),
-							'color': getColor(colors.highlightedLeafNode.color, overrides.highlightedLeafNodeColor),
-						}
-					},
-					{
-						selector: '.highlightedRootNode',
-						style: {
-							'background-color': getColor(colors.highlightedRootNode.backgroundColor, overrides.highlightedRootNodeBackgroundColor),
-							'color': getColor(colors.highlightedRootNode.color, overrides.highlightedRootNodeColor),
-						}
-					},
-					{
-						selector: '.compound',
-						style: {
-							'font-size': '10px',
-							'padding-top': 25,
-							'background-color': getColor(colors.compound.backgroundColor, overrides.nodeGroupBackgroundColor),
-							'shape': 'roundrectangle',
-							'label': 'data(label)',
-							'text-valign': 'top',
-							'text-halign': 'center',
-							'text-margin-y': 15,
-						}
-					},
-					{
-						selector: 'edge',
-						style: {
-							'curve-style': 'unbundled-bezier',
-							'target-arrow-shape': 'triangle',
-							'line-color': getColor(colors.edge.lineColor, overrides.edgeLineColor),
-							'target-arrow-color': getColor(colors.edge.arrowColor, overrides.edgeArrowColor),
-							'opacity': 0.5,
-						}
-					},
-					{
-						selector: '.dimmedEdge',
-						style: {
-							'opacity': 0.2,
-						}
-					},
-					{
-						selector: '.highlightedEdge',
-						style: {
-							'opacity': 1,
-						}
-					},
-                    {
-                        selector: '.searchHighlight',
-                        style: {
-                            'background-color': getColor(colors.searchHighlight.backgroundColor, overrides.searchHighlightBackgroundColor),
-                            'color': getColor(colors.searchHighlight.color, overrides.searchHighlightColor),
-                            'border-width': 2,
-                            'border-color': getColor(colors.searchHighlight.borderColor, overrides.searchHighlightBorderColor),
-                        }
-                    },
-				]
-			}
-
-			const resetRootHighlights = () => {
-                if (state.config.highlightRoots) {
-					cy.nodes().removeClass('highlightedRootNode');
-					cy.nodes().roots().not(':parent').addClass('highlightedRootNode');
-				}
-			}
-			const resetLeafHighlights = () => {
-				if (state.config.highlightLeaves) {
-					cy.nodes().removeClass('highlightedLeafNode');
-					if (state.config.highlightLeaves) cy.nodes().leaves().not(':parent').addClass('highlightedLeafNode');
-				}
-			}
-			const resetHighlights = () => {
-				cy.nodes().removeClass(['dimmedNode', 'highlightedNode', 'searchHighlight']);
-				cy.edges().removeClass(['dimmedEdge', 'highlightedEdge']);
-				cy.nodes().data('isHighlighted', false)
-			}
-
-            // Search functionality
-            function setupSearch() {
-                const searchInput = document.getElementById('search-input');
-                const searchResults = document.getElementById('search-results');
-
-                searchInput.addEventListener('input', debounce(function() {
-                    const query = searchInput.value.toLowerCase().trim();
-                    if (query.length < 2) {
-                        searchResults.style.display = 'none';
-                        resetHighlights();
-                        return;
-                    }
-
-                    // Find matching nodes
-                    const matchingNodes = cy.nodes().filter(node => {
-                        const label = node.data('label') || '';
-                        return label.toLowerCase().includes(query);
-                    });
-
-                    // Display results
-                    searchResults.innerHTML = '';
-                    if (matchingNodes.length > 0) {
-                        searchResults.style.display = 'block';
-                        matchingNodes.forEach(node => {
-                            const resultItem = document.createElement('div');
-                            resultItem.className = 'search-result-item';
-                            resultItem.textContent = node.data('label');
-                            resultItem.addEventListener('click', () => {
-                                // Highlight the selected node
-                                resetHighlights();
-                                node.addClass('searchHighlight');
-
-                                // Center and zoom to the node
-                                cy.animate({
-                                    fit: {
-                                        eles: node,
-                                        padding: 50
-                                    },
-                                    zoom: 1.5,
-                                    duration: 200
-                                });
-
-                                searchResults.style.display = 'none';
-                            });
-                            searchResults.appendChild(resultItem);
-                        });
-                    } else {
-                        searchResults.style.display = 'none';
-                    }
-                }, 300));
-
-                // Close search results when clicking outside
-                document.addEventListener('click', function(event) {
-                    if (!searchResults.contains(event.target) && event.target !== searchInput) {
-                        searchResults.style.display = 'none';
-                    }
-                });
-            }
-
-            document.addEventListener('DOMContentLoaded', function() {
-                vscode.postMessage({
-                    type: 'state',
-                    data: 'loaded',
-                })
-            });
-
-            const debouncedLayout = debounce(() => {
-                cy.layout(getLayoutOpts()).run();
-                vscode.setState(state)
-            }, layoutDebounce[state.config.defaultGraphLayoutAlgorithm]);
-            const methods = {
-                setParams: function(newParams) {
-                    state = {...state, ...newParams}
-                    vscode.postMessage({
-                        type: 'state',
-                        data: 'ready',
-                    })
-                    start()
-                },
-                addElems: function(newElems) {
-					state.elems = state.elems.concat(newElems)
-
-					cy.add(newElems)
-					resetRootHighlights()
-					resetLeafHighlights()
-					resetHighlights()
-
-					debouncedLayout();
-                },
-            }
-
-            window.addEventListener('message', event => {
-                const message = event.data;
-                methods[message.type](message.data);
-            });
-
-            const start = function() {
-                cy = cytoscape({
-                    container: document.getElementById('cy'),
-                    style: getCyStyle(),
-                    elements: state.elems,
-                    wheelSensitivity: 0.5, // TODO: make configurable
-                    minZoom: 0.075, // TODO: make configurable
-                    maxZoom: 7.5, // TODO: make configurable
-                });
-                cy.layout(getLayoutOpts()).run();
-
-                // Setup search functionality
-                setupSearch();
-
-                cy.on('tap', function(e) {
-                    if (e.target !== cy) {
-                        return;
-                    }
-
-					resetHighlights()
-                })
-
-                cy.on('tap', 'node', function(e){
-                    const node = e.target
-                    const isCtrlDown = (e) => {
-                        if (isMac && e.originalEvent.metaKey) {
-                            return true
-                        }
-                        if (!isMac && e.originalEvent.ctrlKey) {
-                            return true
-                        }
-                        return false
-                    }
-                    const isAltDown = (e) => {
-                        if (e.originalEvent.altKey) {
-                            return true
-                        }
-                        return false
-                    }
-
-                    const isShiftDown = (e) => {
-                        if (e.originalEvent.shiftKey) {
-                            return true
-                        }
-                        return false
-                    }
-
-                    if (isCtrlDown(e)) {
-                        vscode.postMessage({
-                            type: 'goToFunction',
-                            data: node.id(),
-                        })
-                        return
-                    }
-
-					if (isAltDown(e)) {
-                        if (isShiftDown(e)) {
-                            vscode.postMessage({
-                                type: 'expandBoth',
-                                data: {
-                                    id: node.id(),
-                                    depth: -1,
-                                },
-                            })
-                        } else {
-                            vscode.postMessage({
-                                type: 'expandBoth',
-                                data: {
-                                    id: node.id(),
-                                    depth: 1,
-                                },
-                            })
-                        }
-						return
-					}
-
-                    if (!node.data('isHighlighted')) {
-						resetHighlights()
-
-                        // set highlight data for toggle
-                        // highlight node, and parent. if only one child, highlight child
-                        node.data('isHighlighted', true)
-                        node.parent().data('isHighlighted', true)
-                        if (node.children().size() == 1) {
-                            node.children().data('isHighlighted', true)
-                        }
-
-                        // highlight neighborhood
-                        let neighborhood = node
-						neighborhood = neighborhood.add(node.children())
-						neighborhood = neighborhood.add(neighborhood.neighborhood())
-						neighborhood = neighborhood.add(neighborhood.parent())
-
-                        neighborhood.nodes().addClass('highlightedNode');
-                        neighborhood.edges().addClass('highlightedEdge');
-
-                        // dim everything else
-                        cy.nodes().not('.highlightedNode').addClass('dimmedNode');
-                        cy.edges().not('.highlightedEdge').addClass('dimmedEdge');
-                    } else {
-                        node.data('isHighlighted', false)
-                        node.parent().data('isHighlighted', false)
-                        node.children().data('isHighlighted', false)
-                        cy.nodes().removeClass(['highlightedNode', 'dimmedNode']);
-                        cy.edges().removeClass(['highlightedEdge', 'dimmedEdge']);
-                    }
-                });
             }
         </script>
+
+        <script src="{{webviewScriptURI}}"></script>
     </body>
 </html>

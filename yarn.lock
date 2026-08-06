@@ -2,6 +2,11 @@
 # yarn lockfile v1
 
 
+"@esbuild/linux-x64@0.28.1":
+  version "0.28.1"
+  resolved "https://registry.npmjs.org/@esbuild/linux-x64/-/linux-x64-0.28.1.tgz"
+  integrity sha512-u/anNYF2mmVOEDwLtnQ1wOr3EZ9sTNGLWrsYGYwHWzGA3Si84IOkHXlbWTD1NB+9/1lcnweYKO54uhxZydNzfA==
+
 "@eslint/eslintrc@^1.2.1":
   version "1.2.1"
   resolved "https://registry.npmmirror.com/@eslint/eslintrc/-/eslintrc-1.2.1.tgz"
@@ -56,6 +61,11 @@
   version "1.1.2"
   resolved "https://registry.npmmirror.com/@tootallnate/once/-/once-1.1.2.tgz"
   integrity sha512-RbzJvlNzmRq5c3O09UipeuXno4tA1FE6ikOjxZK0tuxVv3412l64l5t1W5pj4+rJq9vpkm/kwiR07aZXnsKPxw==
+
+"@types/cytoscape@^3.21.9":
+  version "3.21.9"
+  resolved "https://registry.npmjs.org/@types/cytoscape/-/cytoscape-3.21.9.tgz"
+  integrity sha512-JyrG4tllI6jvuISPjHK9j2Xv/LTbnLekLke5otGStjFluIyA9JjgnvgZrSBsp8cEDpiTjwgZUZwpPv8TSBcoLw==
 
 "@types/json-schema@^7.0.9":
   version "7.0.11"
@@ -374,6 +384,38 @@ cross-spawn@^7.0.2:
     shebang-command "^2.0.0"
     which "^2.0.1"
 
+cytoscape-dagre@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.npmjs.org/cytoscape-dagre/-/cytoscape-dagre-4.0.0.tgz"
+  integrity sha512-wsDgi1hHpWfslQxe/Gd/xCCeg2YUDrzwulhHOSI7fMfll92FFVY2AWhSRulLiOVcyDE4zz0rRd/+1TBTw+ew5Q==
+
+cytoscape-elk@^2.3.0:
+  version "2.3.0"
+  resolved "https://registry.npmjs.org/cytoscape-elk/-/cytoscape-elk-2.3.0.tgz"
+  integrity sha512-1h2ZmPOy5HD2+mrfF3P2ICxfnDyPCWg/xLVs7fIjTOzdQu51ydrMtm6Sb7KnhFwLBzhGIVYI2Gbns0njggBarQ==
+  dependencies:
+    elkjs "^0.9.3"
+
+cytoscape-klay@^3.1.4:
+  version "3.1.4"
+  resolved "https://registry.npmjs.org/cytoscape-klay/-/cytoscape-klay-3.1.4.tgz"
+  integrity sha512-VwPj0VR25GPfy6qXVQRi/MYlZM/zkdvRhHlgqbM//lSvstgM6fhp3ik/uM8Wr8nlhskfqz/M1fIDmR6UckbS2A==
+  dependencies:
+    klayjs "^0.4.1"
+
+cytoscape@^3.2.0, cytoscape@^3.2.22, cytoscape@^3.34.0:
+  version "3.34.0"
+  resolved "https://registry.npmjs.org/cytoscape/-/cytoscape-3.34.0.tgz"
+  integrity sha512-62rNSrioXw93uliKFBwjukeQyeWwH2PqDrTac31r2P6464u3AUvTk0xS4LVvT251g7IgkFunrI48ZEZGjywSOg==
+
+dagre@^0.8.5:
+  version "0.8.5"
+  resolved "https://registry.npmjs.org/dagre/-/dagre-0.8.5.tgz"
+  integrity sha512-/aTqmnRta7x7MCCpExk7HQL2O4owCT2h8NT//9I1OQ9vt29Pa0BzSAkR5lwFUcQ7491yVi/3CXU9jQ5o0Mn2Sw==
+  dependencies:
+    graphlib "^2.1.8"
+    lodash "^4.17.15"
+
 debug@^4.1.1, debug@^4.3.2, debug@4:
   version "4.3.4"
   resolved "https://registry.npmmirror.com/debug/-/debug-4.3.4.tgz"
@@ -424,10 +466,52 @@ duplexer2@~0.1.4:
   dependencies:
     readable-stream "^2.0.2"
 
+elkjs@^0.12.0:
+  version "0.12.0"
+  resolved "https://registry.npmjs.org/elkjs/-/elkjs-0.12.0.tgz"
+  integrity sha512-YZcKynxVxYoKIOEpywEPwCFdg+BTbxQRNf3pbwdDCvc8O3kQD8bmIwSxKU1eOTVc4Xo+VG9Te+575mlfvOrhEQ==
+
+elkjs@^0.9.3:
+  version "0.9.3"
+  resolved "https://registry.npmjs.org/elkjs/-/elkjs-0.9.3.tgz"
+  integrity sha512-f/ZeWvW/BCXbhGEf1Ujp29EASo/lk1FDnETgNKwJrsVvGZhUWCZyg3xLJjAsxfOmt8KjswHmI5EwCQcPMpOYhQ==
+
 emoji-regex@^8.0.0:
   version "8.0.0"
   resolved "https://registry.npmmirror.com/emoji-regex/-/emoji-regex-8.0.0.tgz"
   integrity sha512-MSjYzcWNOA0ewAHpz0MxpYFvwg6yjy1NG3xteoqz644VCo/RPgnr1/GGt+ic3iJTzQ8Eu3TdM14SawnVUmGE6A==
+
+esbuild@^0.28.1:
+  version "0.28.1"
+  resolved "https://registry.npmjs.org/esbuild/-/esbuild-0.28.1.tgz"
+  integrity sha512-HrJrvZv5ayxBzPfwphOoNzkzOIIlifzk0KJrGK2c8R4+LKpMtpYLQeUdjnwjWv/LZlkH2laZk+4w78pi99D4Vw==
+  optionalDependencies:
+    "@esbuild/aix-ppc64" "0.28.1"
+    "@esbuild/android-arm" "0.28.1"
+    "@esbuild/android-arm64" "0.28.1"
+    "@esbuild/android-x64" "0.28.1"
+    "@esbuild/darwin-arm64" "0.28.1"
+    "@esbuild/darwin-x64" "0.28.1"
+    "@esbuild/freebsd-arm64" "0.28.1"
+    "@esbuild/freebsd-x64" "0.28.1"
+    "@esbuild/linux-arm" "0.28.1"
+    "@esbuild/linux-arm64" "0.28.1"
+    "@esbuild/linux-ia32" "0.28.1"
+    "@esbuild/linux-loong64" "0.28.1"
+    "@esbuild/linux-mips64el" "0.28.1"
+    "@esbuild/linux-ppc64" "0.28.1"
+    "@esbuild/linux-riscv64" "0.28.1"
+    "@esbuild/linux-s390x" "0.28.1"
+    "@esbuild/linux-x64" "0.28.1"
+    "@esbuild/netbsd-arm64" "0.28.1"
+    "@esbuild/netbsd-x64" "0.28.1"
+    "@esbuild/openbsd-arm64" "0.28.1"
+    "@esbuild/openbsd-x64" "0.28.1"
+    "@esbuild/openharmony-arm64" "0.28.1"
+    "@esbuild/sunos-x64" "0.28.1"
+    "@esbuild/win32-arm64" "0.28.1"
+    "@esbuild/win32-ia32" "0.28.1"
+    "@esbuild/win32-x64" "0.28.1"
 
 escalade@^3.1.1:
   version "3.1.1"
@@ -711,6 +795,13 @@ graceful-fs@^4.1.2, graceful-fs@^4.2.2:
   resolved "https://registry.npmmirror.com/graceful-fs/-/graceful-fs-4.2.9.tgz"
   integrity sha512-NtNxqUcXgpW2iMrfqSfR73Glt39K+BLwWsPs94yR63v45T0Wbej7eRmL5cWfwEgqXnmjQp3zaJTshdRW/qC2ZQ==
 
+graphlib@^2.1.8:
+  version "2.1.8"
+  resolved "https://registry.npmjs.org/graphlib/-/graphlib-2.1.8.tgz"
+  integrity sha512-jcLLfkpoVGmH7/InMC/1hIvOPSUh38oJtGhvrOFGzioE1DZ+0YW16RgmOJhHiuWTvGiJQ9Z1Ik43JvkRPRvE+A==
+  dependencies:
+    lodash "^4.17.15"
+
 growl@1.10.5:
   version "1.10.5"
   resolved "https://registry.npmmirror.com/growl/-/growl-1.10.5.tgz"
@@ -840,6 +931,11 @@ json-stable-stringify-without-jsonify@^1.0.1:
   resolved "https://registry.npmmirror.com/json-stable-stringify-without-jsonify/-/json-stable-stringify-without-jsonify-1.0.1.tgz"
   integrity sha512-Bdboy+l7tA3OGW6FjyFHWkP5LuByj1Tk33Ljyq0axyzdk9//JSi2u3fP1QSmd1KNwq6VOKYGlAu87CisVir6Pw==
 
+klayjs@^0.4.1:
+  version "0.4.1"
+  resolved "https://registry.npmjs.org/klayjs/-/klayjs-0.4.1.tgz"
+  integrity sha512-WUNxuO7O79TEkxCj6OIaK5TJBkaWaR/IKNTakgV9PwDn+mrr63MLHed34AcE2yTaDntgO6l0zGFIzhcoTeroTA==
+
 levn@^0.4.1:
   version "0.4.1"
   resolved "https://registry.npmmirror.com/levn/-/levn-0.4.1.tgz"
@@ -864,6 +960,11 @@ lodash.merge@^4.6.2:
   version "4.6.2"
   resolved "https://registry.npmmirror.com/lodash.merge/-/lodash.merge-4.6.2.tgz"
   integrity sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==
+
+lodash@^4.17.15:
+  version "4.18.1"
+  resolved "https://registry.npmjs.org/lodash/-/lodash-4.18.1.tgz"
+  integrity sha512-dMInicTPVE8d1e5otfwmmjlxkZoUpiVLwyeTdUsi/Caj/gfzzblBcCE5sRHV/AsjuCmxWrte2TNGSYuCeCq+0Q==
 
 log-symbols@4.1.0:
   version "4.1.0"

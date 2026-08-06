@@ -1,9 +1,7 @@
 import * as vscode from 'vscode'
 import { CyNode, Element, getCyElems } from './graph'
-import { getHtmlContent } from './html'
+import { resolveHtml } from './html'
 import { CallHierarchy, getCallHierarchy as buildGraph } from './call'
-import * as path from 'path'
-import * as fs from 'fs'
 import { printChannelOutput } from './logger'
 
 type State = {
@@ -92,10 +90,7 @@ export function setupCallGraph(
     params?: Params,
     state?: State,
 ) {
-    const libsPath = vscode.Uri.file(path.join(context.extensionPath, 'src', 'libs'));
-    const libsURI = panel.webview.asWebviewUri(libsPath);
-    let html = getHtmlContent(context);
-    html = html.replace(/{{libsURI}}/g, libsURI.toString());
+    const html = resolveHtml(context, panel)
 
     const configs = vscode.workspace.getConfiguration('chartographer')
     const config = {
