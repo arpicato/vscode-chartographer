@@ -212,11 +212,11 @@
         ]
     },
     "scripts": {
-        "vscode:prepublish": "yarn run compile && yarn run compile:webview",
-        "compile": "tsc -p ./",
-        "compile:webview": "node esbuild.config.mjs",
+        "vscode:prepublish": "npm run build",
+        "build": "node esbuild.config.mjs",
+        "typecheck": "tsc --noEmit",
         "watch": "tsc -watch -p ./",
-        "pretest": "yarn run compile && yarn run lint",
+        "pretest": "npm run build && npm run lint",
         "lint": "eslint src --ext ts",
         "test": "node ./out/test/runTest.js",
         "package": "vsce package --no-yarn"

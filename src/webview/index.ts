@@ -1,4 +1,4 @@
-import cytoscape, { Core, EventObject, NodeSingular } from 'cytoscape'
+import cytoscape, { Core } from 'cytoscape'
 import cytoscapeDagre from 'cytoscape-dagre'
 import cytoscapeElk from 'cytoscape-elk'
 import cytoscapeKlay from 'cytoscape-klay'
@@ -47,10 +47,10 @@ const layoutDebounce: Record<string, number> = {
 }
 
 function debounce<T extends (...args: unknown[]) => void>(func: T, delay: number): T {
-    let timer: ReturnType<typeof setTimeout> | undefined
+    let timer: number | undefined
     return ((...args: unknown[]) => {
         clearTimeout(timer)
-        timer = setTimeout(() => func(...args), delay)
+        timer = setTimeout(() => func(...args), delay) as unknown as number
     }) as T
 }
 
@@ -111,7 +111,7 @@ const colorSchemes: Record<string, Record<string, Record<string, string>>> = {
     },
 }
 
-function getCyStyle(): cytoscape.Stylesheet[] {
+function getCyStyle(): cytoscape.StylesheetStyle[] {
     const style = getComputedStyle(document.body)
     const getStyle = (name: string): string => style.getPropertyValue(name).trim()
 
@@ -167,7 +167,7 @@ function getCyStyle(): cytoscape.Stylesheet[] {
             selector: '.compound',
             style: {
                 'font-size': '10px',
-                'padding-top': 25,
+                'padding-top': '25px',
                 'background-color': getColor(colors.compound.backgroundColor, overrides.nodeGroupBackgroundColor),
                 shape: 'roundrectangle',
                 label: 'data(label)',
@@ -250,10 +250,10 @@ function setupSearch(): void {
             return
         }
 
-        const matchingNodes = cy?.nodes().filter(node => {
+        const matchingNodes = cy!.nodes().filter(node => {
             const label = node.data('label') || ''
             return label.toLowerCase().includes(query)
-        }) || cy.collection()
+        })
 
         searchResults.innerHTML = ''
         if (matchingNodes.length > 0) {
@@ -312,7 +312,7 @@ function getLayoutOpts(): cytoscape.LayoutOptions {
         edgeSep: 15,
         ranker: 'network-simplex',
     }
-    return base as cytoscape.LayoutOptions
+    return base as unknown as cytoscape.LayoutOptions
 }
 
 const debouncedLayout = debounce(() => {
@@ -346,20 +346,20 @@ window.addEventListener('message', event => {
     }
 })
 
-function isCtrlClick(event: EventObject): boolean {
-    const e = event.originalEvent as MouseEvent | undefined
+function isCtrlClick(evt: cytoscape.EventObject): boolean {
+    const e = evt.originalEvent as MouseEvent | undefined
     if (!e) return false
     if (isMac) return e.metaKey
     return e.ctrlKey
 }
 
-function isAltClick(event: EventObject): boolean {
-    const e = event.originalEvent as MouseEvent | undefined
+function isAltClick(evt: cytoscape.EventObject): boolean {
+    const e = evt.originalEvent as MouseEvent | undefined
     return e?.altKey || false
 }
 
-function isShiftClick(event: EventObject): boolean {
-    const e = event.originalEvent as MouseEvent | undefined
+function isShiftClick(evt: cytoscape.EventObject): boolean {
+    const e = evt.originalEvent as MouseEvent | undefined
     return e?.shiftKey || false
 }
 
@@ -376,17 +376,17 @@ function start(): void {
         maxZoom: 7.5,
     })
 
-    cy.layout(getLayoutOpts()).run()
+    cy!.layout(getLayoutOpts()).run()
 
     setupSearch()
 
-    cy.on('tap', function (e) {
+    cy!.on('tap', function (e) {
         if (e.target === cy) {
             resetHighlights()
         }
     })
 
-    cy.on('tap', 'node', function (e) {
+    cy!.on('tap', 'node', function (e) {
         const node = e.target
 
         if (isCtrlClick(e)) {
@@ -429,14 +429,14 @@ function start(): void {
             neighborhood.nodes().addClass('highlightedNode')
             neighborhood.edges().addClass('highlightedEdge')
 
-            cy.nodes().not('.highlightedNode').addClass('dimmedNode')
-            cy.edges().not('.highlightedEdge').addClass('dimmedEdge')
+            cy!.nodes().not('.highlightedNode').addClass('dimmedNode')
+            cy!.edges().not('.highlightedEdge').addClass('dimmedEdge')
         } else {
             node.data('isHighlighted', false)
             node.parent().data('isHighlighted', false)
             node.children().data('isHighlighted', false)
-            cy.nodes().removeClass(['highlightedNode', 'dimmedNode'])
-            cy.edges().removeClass(['highlightedEdge', 'dimmedEdge'])
+            cy!.nodes().removeClass(['highlightedNode', 'dimmedNode'])
+            cy!.edges().removeClass(['highlightedEdge', 'dimmedEdge'])
         }
     })
 }
