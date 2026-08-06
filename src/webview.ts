@@ -4,7 +4,7 @@ import { getHtmlContent } from './html'
 import { CallHierarchy, getCallHierarchy as buildGraph } from './call'
 import * as path from 'path'
 import * as fs from 'fs'
-import { printChannelOutput } from './extension'
+import { printChannelOutput } from './logger'
 
 type State = {
     elems: Element[],
@@ -73,9 +73,8 @@ export async function getSelectedFunctions() {
 		activeTextEditor.selection.active
 	)
 	if (!entry || !entry[0]) {
-		const msg = "Can't resolve entry function"
-		vscode.window.showErrorMessage(msg)
-		throw new Error(msg)
+		vscode.window.showErrorMessage("Can't resolve entry function")
+		return []
 	}
 
 	return entry
@@ -95,7 +94,7 @@ export function setupCallGraph(
 ) {
     const libsPath = vscode.Uri.file(path.join(context.extensionPath, 'src', 'libs'));
     const libsURI = panel.webview.asWebviewUri(libsPath);
-    var html = getHtmlContent(context);
+    let html = getHtmlContent(context);
     html = html.replace(/{{libsURI}}/g, libsURI.toString());
 
     const configs = vscode.workspace.getConfiguration('chartographer')
@@ -124,12 +123,6 @@ export function setupCallGraph(
     }
     printChannelOutput("config:")
     printChannelOutput(JSON.stringify(config, null, 4))
-
-	// panel.onDidChangeViewState((e) => {
-	// 	if (panel.visible) {
-	// 		lastFocusedPanel = panel
-	// 	}
-	// })
 
     const nodes: { [key: string]: Element}  = {}
     const addElems = (elems: Element[]) => {
@@ -186,16 +179,16 @@ export function setupCallGraph(
                 }
 
             case 'goToFunction':
-                var node = nodes[msg.data] as CyNode
-                if (!node) return
+                const goToNode = nodes[msg.data] as CyNode
+                if (!goToNode) return
 
                 const range = new vscode.Range(
-                    node.data.line,
-                    node.data.character,
-                    node.data.line,
-                    node.data.character,
+                    goToNode.data.line,
+                    goToNode.data.character,
+                    goToNode.data.line,
+                    goToNode.data.character,
                 )
-                vscode.window.showTextDocument(node.data.uri, {
+                vscode.window.showTextDocument(goToNode.data.uri, {
                     selection: range,
                     preview: true,
                     viewColumn: vscode.ViewColumn.One,
@@ -203,8 +196,7 @@ export function setupCallGraph(
                 break
 
             case 'expandBoth':
-                // const uri = vscode.Uri.file(msg.data.uri.fsPath)
-                var node = nodes[msg.data.id] as CyNode
+                const node = nodes[msg.data.id] as CyNode
                 if (!node) return
                 const position = new vscode.Position(node.data.line, node.data.character)
                 const item: vscode.CallHierarchyItem[] =
@@ -214,9 +206,8 @@ export function setupCallGraph(
                         position,
                     )
                 if (!item || !item[0]) {
-                    const msg = "Can't resolve entry function"
-                    vscode.window.showErrorMessage(msg)
-                    throw new Error(msg)
+                    vscode.window.showErrorMessage("Can't resolve entry function")
+                    return
                 }
 
                 await buildGraph('Both', item[0], addEdge, msg.data.depth)

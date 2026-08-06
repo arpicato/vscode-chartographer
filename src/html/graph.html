@@ -121,7 +121,7 @@
         <script>
             // Function to toggle the visibility of instructions
             function toggleInstructions() {
-                var instructions = document.getElementById("instructions");
+                const instructions = document.getElementById("instructions");
                 if (instructions.style.display === "none" || instructions.style.display === "") {
                     instructions.style.display = "block";
                 } else {
@@ -192,9 +192,6 @@
 
             const getLayoutOpts = () => {
                 return {
-                    // name: 'klay',
-                    // name: 'elk',
-                    // name: 'dagre',
                     name: state.config.defaultGraphLayoutAlgorithm,
                     animate: true,
                     animationDuration: 250,
@@ -215,10 +212,6 @@
                     },
                     // dagre
                     rankDir: 'LR',
-                    rankSep: 15,
-                    nodeSep: 15,
-                    edgeSep: 15,
-                    // ranker: 'tight-tree',
                     ranker: 'network-simplex',
                 }
             }
@@ -478,7 +471,7 @@
                 cy.layout(getLayoutOpts()).run();
                 vscode.setState(state)
             }, layoutDebounce[state.config.defaultGraphLayoutAlgorithm]);
-            methods = {
+            const methods = {
                 setParams: function(newParams) {
                     state = {...state, ...newParams}
                     vscode.postMessage({
@@ -550,14 +543,6 @@
                         }
                         return false
                     }
-
-                    // console.log(isMac)
-                    // console.log(isCtrlDown(e))
-                    // console.log(isAltDown(e))
-                    // console.log(e.originalEvent.metaKey);
-                    // console.log(e.originalEvent.shiftKey);
-                    // console.log(e.originalEvent.altKey);
-                    // console.log(e.originalEvent.ctrlKey);
 
                     if (isCtrlDown(e)) {
                         vscode.postMessage({

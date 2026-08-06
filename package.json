@@ -245,7 +245,6 @@
         "dot"
     ],
     "dependencies": {
-        "concat-map": "^0.0.2",
         "minimatch": "^9.0.3"
     }
 }
