@@ -18,7 +18,7 @@ type Params = {
 export const buildWebview = (
     context: vscode.ExtensionContext,
 	workspaceRoot: string,
-    direction: 'Incoming' | 'Outgoing' | 'Both',
+    direction: Direction,
     maxDepth: number=-1,
 ) => {
     return async () => {

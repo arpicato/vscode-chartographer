@@ -21,32 +21,8 @@
                 "title": "Chartographer: Add Function to Existing Graph"
             },
             {
-                "command": "Chartographer.showAllOutgoingCallGraph",
-                "title": "Chartographer: Show All Outgoing Call Graph"
-            },
-            {
-                "command": "Chartographer.showAllIncomingCallGraph",
-                "title": "Chartographer: Show All Incoming Call Graph"
-            },
-            {
-                "command": "Chartographer.showAllCallGraph",
-                "title": "Chartographer: Show All Call Graph"
-            },
-            {
-                "command": "Chartographer.showOutgoingCallGraph",
-                "title": "Chartographer: Show Outgoing Call Graph"
-            },
-            {
-                "command": "Chartographer.showIncomingCallGraph",
-                "title": "Chartographer: Show Incoming Call Graph"
-            },
-            {
                 "command": "Chartographer.showCallGraph",
                 "title": "Chartographer: Show Call Graph"
-            },
-            {
-                "command": "Chartographer.showCallGraphCustomDepth",
-                "title": "Chartographer: Show Call Graph with Custom Depth"
             },
             {
                 "command": "Chartographer.showOutputChannel",
@@ -57,21 +33,6 @@
             "editor/context": [
                 {
                     "command": "Chartographer.addHierarchy"
-                },
-                {
-                    "command": "Chartographer.showAllOutgoingCallGraph"
-                },
-                {
-                    "command": "Chartographer.showAllIncomingCallGraph"
-                },
-                {
-                    "command": "Chartographer.showAllCallGraph"
-                },
-                {
-                    "command": "Chartographer.showOutgoingCallGraph"
-                },
-                {
-                    "command": "Chartographer.showIncomingCallGraph"
                 },
                 {
                     "command": "Chartographer.showCallGraph"

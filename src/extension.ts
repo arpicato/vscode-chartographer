@@ -2,6 +2,7 @@ import * as vscode from 'vscode'
 import { buildWebview, getSelectedFunctions, lastFocusedPanel, registerWebviewPanelSerializer } from './webview'
 import { getCyNodes, getNode } from './graph'
 import { initLogger, printChannelOutput } from './logger'
+import { Direction } from './protocol'
 import * as path from "path";
 
 const getDefaultProgressOptions = (title: string): vscode.ProgressOptions => {
@@ -71,104 +72,40 @@ function registerCommands(context: vscode.ExtensionContext, workspaceRoot: strin
     )
     context.subscriptions.push(addHierarchy)
 
-    const allDisposable = vscode.commands.registerCommand(
-        'Chartographer.showAllCallGraph',
-        async () => {
-            vscode.window.withProgress(
-                getDefaultProgressOptions('Generate call graph'),
-                buildWebview(context, workspaceRoot, 'Both')
-            )
-        }
-    )
-    context.subscriptions.push(allDisposable)
-
-    const allIncomingDisposable = vscode.commands.registerCommand(
-        'Chartographer.showAllIncomingCallGraph',
-        async () => {
-            vscode.window.withProgress(
-                getDefaultProgressOptions('Generate call graph'),
-                buildWebview(context, workspaceRoot, 'Incoming')
-            )
-        }
-    )
-    context.subscriptions.push(allIncomingDisposable)
-
-    const allOutgoingDisposable = vscode.commands.registerCommand(
-        'Chartographer.showAllOutgoingCallGraph',
-        async () => {
-            vscode.window.withProgress(
-                getDefaultProgressOptions('Generate call graph'),
-                buildWebview(context, workspaceRoot, 'Outgoing')
-            )
-        }
-    )
-    context.subscriptions.push(allOutgoingDisposable)
-
-
-    const disposable = vscode.commands.registerCommand(
+    const showCallGraph = vscode.commands.registerCommand(
         'Chartographer.showCallGraph',
         async () => {
-            vscode.window.withProgress(
-                getDefaultProgressOptions('Generate call graph'),
-                buildWebview(context, workspaceRoot, 'Both', 1)
+            const direction = await vscode.window.showQuickPick(
+                [
+                    { label: 'Both', description: 'Show incoming and outgoing calls' },
+                    { label: 'Incoming', description: 'Show calls to this function' },
+                    { label: 'Outgoing', description: 'Show calls from this function' },
+                ],
+                { placeHolder: 'Select call direction' }
             )
-        }
-    )
-    context.subscriptions.push(disposable)
+            if (!direction) return
 
-    const incomingDisposable = vscode.commands.registerCommand(
-        'Chartographer.showIncomingCallGraph',
-        async () => {
-            vscode.window.withProgress(
-                getDefaultProgressOptions('Generate call graph'),
-                buildWebview(context, workspaceRoot, 'Incoming', 1)
-            )
-        }
-    )
-    context.subscriptions.push(incomingDisposable)
-
-    const outgoingDisposable = vscode.commands.registerCommand(
-        'Chartographer.showOutgoingCallGraph',
-        async () => {
-            vscode.window.withProgress(
-                getDefaultProgressOptions('Generate call graph'),
-                buildWebview(context, workspaceRoot, 'Outgoing', 1)
-            )
-        }
-    )
-    context.subscriptions.push(outgoingDisposable)
-
-    // Add new command for custom depth
-    const customDepthDisposable = vscode.commands.registerCommand(
-        'Chartographer.showCallGraphCustomDepth',
-        async () => {
-            // Ask user for input
-            const depthInput = await vscode.window.showInputBox({
-                prompt: 'Enter maximum depth for call graph (-1 for unlimited)',
+            const depth = await vscode.window.showInputBox({
+                prompt: 'Maximum depth (leave empty for unlimited)',
                 placeHolder: 'e.g., 2',
                 validateInput: (value) => {
-                    const num = parseInt(value);
-                    return isNaN(num) ? 'Please enter a valid number' : null;
+                    if (value === '') return null
+                    const num = parseInt(value)
+                    return isNaN(num) ? 'Enter a number' : null
                 }
-            });
+            })
+            if (depth === undefined) return
 
-            // If user cancels, depthInput will be undefined
-            if (depthInput === undefined) {
-                return;
-            }
+            const maxDepth = depth === '' ? -1 : parseInt(depth)
 
-            const maxDepth = parseInt(depthInput);
-
-            // Show progress and build webview with custom depth
             vscode.window.withProgress(
-                getDefaultProgressOptions('Generate call graph with custom depth'),
-                buildWebview(context, workspaceRoot, 'Both', maxDepth)
+                getDefaultProgressOptions('Generate call graph'),
+                buildWebview(context, workspaceRoot, direction.label as Direction, maxDepth)
             )
         }
     )
-    context.subscriptions.push(customDepthDisposable)
+    context.subscriptions.push(showCallGraph)
 
-    // Add command to show output channel
     const showOutputChannelDisposable = vscode.commands.registerCommand(
         'Chartographer.showOutputChannel',
         () => {
