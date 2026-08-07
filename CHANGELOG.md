@@ -14,6 +14,11 @@
 - Fix crash when no editor is active
 - 25 unit tests + VS Code integration test
 
+## [1.1.0] 2025-03-18
+
+- Added parameterized node group name forming
+- Added option to trim method name on first non alphabet character
+
 ## [1.0.18] 2025-03-17
 
 - Added high contrast color scheme option
