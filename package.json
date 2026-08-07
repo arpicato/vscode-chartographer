@@ -2,7 +2,7 @@
     "name": "chartographer",
     "displayName": "Chartographer — Call Graph",
     "description": "Interactive call graph and call hierarchy visualization powered by VS Code's language server/LSP. Explore callers, callees, and function relationships.",
-    "version": "1.3.0",
+    "version": "1.4.0",
     "publisher": "ArpinFidel",
     "engines": {
         "vscode": "^1.65.0"
