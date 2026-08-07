@@ -71,8 +71,10 @@ The downloaded VS Code is cached in `.vscode-test/`.
 - Publisher is `ArpinFidel` (can't rename on marketplace). Repo remote is `arpicato/vscode-chartographer`.
 - `vsce publish` fails with "Access Denied" if PAT org doesn't match publisher. Create PAT under **All accessible organizations** to avoid org mismatch.
 - Azure DevOps org must use **Microsoft account** (not "Default Directory") or PAT permissions break.
-- Must bump `version` in `package.json` before publishing. If version already exists on marketplace, publish fails with "already exists".
+- **Must bump `version` in `package.json` BEFORE creating a release.** The workflow builds VSIX + publishes using the version from `package.json`. If you tag first and bump later, the VSIX will have the wrong version.
+- If version already exists on marketplace, publish fails with "already exists".
 - `.github/workflows/publish.yml` triggers on `release: [published]` or manual `workflow_dispatch`.
+- On `workflow_dispatch`, `GITHUB_REF_NAME` is the branch name (e.g. `main`), not the version tag. The VSIX filename will be `chartographer-main.vsix` — this is fine for the publish step but the release upload step is skipped (guarded by `if: github.event_name == 'release'`).
 
 ### Path finding
 - Cytoscape `dijkstra().pathTo()` returns root-only collection when no path exists (not empty). Check `path.nodes().filter(n => n.id() === targetId).length > 0` instead of `path.length === 0`.
