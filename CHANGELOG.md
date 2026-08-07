@@ -6,12 +6,16 @@
 - Hover + E/Shift+E/Del for expand and remove nodes
 - Right-click context menu with remove, expand, and go to function
 - User-configurable `trimFunctionPattern` regex (replaces boolean `trimFunctionNames`)
+- `defaultDirection` config: horizontal or vertical layout for all algorithms
+- `wheelSensitivity` config: zoom sensitivity (0.01-10)
+- `showFileGroupBox` / `showFileGroupLabel` config: toggle file group visibility
 - Consolidate 6 commands into 1 quickPick (direction + depth)
 - esbuild bundling: faster build, smaller VSIX, type-safe webview code
 - Typed message protocol between extension and webview
 - Fix .gitignore pattern conversion (was commented out)
 - Fix panel state restoration across restarts
 - Fix crash when no editor is active
+- Fix serialized URI revive on panel restore
 - 25 unit tests + VS Code integration test
 
 ## [1.1.0] 2025-03-18
