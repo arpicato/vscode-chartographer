@@ -150,7 +150,7 @@ export function setupCallGraph(
         addElems(elems)
     }
 
-    const handler = async (msg: WebviewToExtensionMessage) => {
+    const handler = async (msg: WebviewToExtensionMessage | { type: 'timing', data: { scriptLoad: number, toReady: number, render: number, total: number } }) => {
         switch (msg.type) {
             case 'state':
                 switch (msg.data) {
@@ -221,6 +221,11 @@ export function setupCallGraph(
                 }
 
                 await buildGraph('Both', item[0], addEdge, msg.data.depth)
+                break
+
+            case 'timing':
+                const t = msg.data as any
+                printChannelOutput(`[timing] scriptLoad=${t.scriptLoad.toFixed(0)}ms toReady=${t.toReady.toFixed(0)}ms render=${t.render.toFixed(0)}ms total=${t.total.toFixed(0)}ms`)
                 break
         }
     }

@@ -20,6 +20,9 @@ const vscode = acquireVsCodeApi()
 const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
 let cy: Core | null = null
 
+const t0 = performance.now()
+let t1 = 0, t2 = 0, t3 = 0
+
 const previousState = vscode.getState()
 let state: WebviewState = previousState || {
     config: {},
@@ -316,11 +319,13 @@ const methods: {
     [K in ExtensionToWebviewMessage['type']]: (msg: Extract<ExtensionToWebviewMessage, { type: K }>) => void
 } = {
     setParams(msg) {
+        t1 = performance.now()
         state = { ...state, config: msg.data.config }
         vscode.postMessage({ type: 'state', data: 'ready' })
         start()
     },
 addElems(msg) {
+        t2 = performance.now()
         state.elems = state.elems.concat(msg.data)
         cy?.add(msg.data)
         vscode.setState(state)
@@ -328,6 +333,16 @@ addElems(msg) {
         resetLeafHighlights()
         resetHighlights()
         debouncedLayout()
+        t3 = performance.now()
+        vscode.postMessage({
+            type: 'timing',
+            data: {
+                scriptLoad: t1 - t0,
+                toReady: t2 - t1,
+                render: t3 - t2,
+                total: t3 - t0,
+            },
+        } as any)
     },
 }
 
