@@ -2,7 +2,7 @@
     "name": "chartographer",
     "displayName": "Chartographer — Call Graph",
     "description": "Interactive call graph and call hierarchy visualization powered by VS Code's language server/LSP. Explore callers, callees, and function relationships.",
-    "version": "1.4.1",
+    "version": "1.4.2",
     "publisher": "ArpinFidel",
     "engines": {
         "vscode": "^1.65.0"
@@ -11,6 +11,7 @@
         "Visualization"
     ],
     "activationEvents": [
+        "onStartupFinished",
         "onWebviewPanel:Chartographer.previewCallGraph"
     ],
     "main": "./out/extension.js",
@@ -27,6 +28,10 @@
             {
                 "command": "Chartographer.showOutputChannel",
                 "title": "Chartographer: Show Output Channel"
+            },
+            {
+                "command": "Chartographer.showChangelog",
+                "title": "Chartographer: Show Changelog"
             }
         ],
         "menus": {
@@ -210,7 +215,7 @@
         "lint": "eslint src --ext ts",
         "pretest": "npm run build && npm run compile:tests && npm run lint",
         "test": "node ./out/test/runTest.js",
-        "test:unit": "mocha out/test/suite/graph.test.js",
+        "test:unit": "mocha --ui tdd out/test/suite/graph.test.js",
         "package": "vsce package --no-yarn"
     },
     "devDependencies": {

@@ -10,6 +10,21 @@ If you like Chartographer and think I could be a good fit for your team, feel fr
 * LinkedIn: https://linkedin.com/in/richard-putra
 * GitHub: https://github.com/arpicato
 
+## [1.4.2] 2026-08-08
+
+- Fix changelog popup after extension updates
+- Add `Chartographer: Show Changelog` for manual testing
+
+## [1.4.1] 2026-08-08
+
+- Fix changelog GitHub URL
+- Fix "Find path to..." workspace symbol search (no longer auto-expands)
+- Fix path highlight: dim non-path nodes instead of recoloring path nodes
+- Fix reverse path detection: check target presence in Dijkstra result
+- Fix Shift+Click path: clear existing highlights before computing path
+- Add `workflow_dispatch` trigger for manual publish
+- Build VSIX as release asset automatically
+
 ## [1.4.0] 2026-08-08
 
 - Edge click navigation: click edge to jump to call site (1 site) or quickPick (N sites)
@@ -127,4 +142,3 @@ If you like Chartographer and think I could be a good fit for your team, feel fr
 ## [1.0.0] 2023-10-22
 
 - Initial release
-
