@@ -111,6 +111,21 @@
                         "type": "string",
                         "default": "",
                         "markdownDescription": "Regex to extract a clean function name. The first match at position 0 replaces the full name. Empty = no trimming.\n\nCommon patterns:\n- `^[a-zA-Z_$][a-zA-Z0-9_$]*` — extract first identifier. Strips generics `process<T>` → `process`, params `handleClick (e)` → `handleClick`, namespaces `foo.bar` → `foo`\n- `^[a-zA-Z]+` — strip after first non-alpha. `level1` → `level`, `getData` → `getData`\n- `^[^<(]+` — strip at first `<` or `(`. `foo<T>(x)` → `foo`, `bar (x)` → `bar`"
+                    },
+                    "chartographer.wheelSensitivity": {
+                        "description": "Sensitivity of mouse-wheel and trackpad zooming in the call graph",
+                        "type": "number",
+                        "default": 0.5
+                    },
+                    "chartographer.showFileGroupBox": {
+                        "description": "Show a visible border and background box around nodes grouped by file",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "chartographer.showFileGroupLabel": {
+                        "description": "Show the formatted filename label above each file group",
+                        "type": "boolean",
+                        "default": false
                     }
                 }
             },

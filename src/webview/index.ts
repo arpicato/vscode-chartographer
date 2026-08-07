@@ -161,9 +161,13 @@ function getCyStyle(): cytoscape.StylesheetStyle[] {
             style: {
                 'font-size': '10px',
                 'padding-top': '25px',
-                'background-color': getColor(colors.compound.backgroundColor, overrides.nodeGroupBackgroundColor),
+                'background-color': state.config.showFileGroupBox
+                    ? getColor(colors.compound.backgroundColor, overrides.nodeGroupBackgroundColor)
+                    : 'transparent',
+                'border-width': state.config.showFileGroupBox ? 1 : 0,
+                'border-color': getColor(colors.node.borderColor, overrides.nodeBorderColor),
                 shape: 'roundrectangle',
-                label: 'data(label)',
+                label: state.config.showFileGroupLabel ? 'data(label)' : '',
                 'text-valign': 'top',
                 'text-halign': 'center',
                 'text-margin-y': 15,
@@ -467,7 +471,7 @@ function start(): void {
         container,
         style: getCyStyle(),
         elements: state.elems,
-        wheelSensitivity: 0.5,
+        wheelSensitivity: state.config.wheelSensitivity ?? 0.5,
         minZoom: 0.075,
         maxZoom: 7.5,
     })

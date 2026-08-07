@@ -10,6 +10,9 @@ export interface ChartographerConfig {
     colorScheme?: string
     nodeDisplayFormat?: string
     trimFunctionPattern?: string
+    wheelSensitivity?: number
+    showFileGroupBox?: boolean
+    showFileGroupLabel?: boolean
     colors?: {
         nodeBackgroundColor?: string
         nodeColor?: string

@@ -113,6 +113,9 @@ export function setupCallGraph(
         colorScheme: configs.get<string>('colorScheme'),
         nodeDisplayFormat: configs.get<string>('nodeDisplayFormat'),
         trimFunctionPattern: configs.get<string>('trimFunctionPattern'),
+        wheelSensitivity: configs.get<number>('wheelSensitivity'),
+        showFileGroupBox: configs.get<boolean>('showFileGroupBox'),
+        showFileGroupLabel: configs.get<boolean>('showFileGroupLabel'),
         colors: {
             nodeBackgroundColor: configs.get<string>('colors.nodeBackgroundColor'),
             nodeColor: configs.get<string>('colors.nodeColor'),
