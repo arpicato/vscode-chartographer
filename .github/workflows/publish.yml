@@ -1,6 +1,7 @@
 name: Publish to Marketplace
 
 on:
+  workflow_dispatch:
   release:
     types: [published]
 
@@ -19,6 +20,7 @@ jobs:
           VER=${GITHUB_REF_NAME#v}
           npx vsce package --no-yarn -o chartographer-$VER.vsix
       - name: Upload VSIX to release
+        if: github.event_name == 'release'
         run: |
           VER=${GITHUB_REF_NAME#v}
           gh release upload ${{ github.ref_name }} chartographer-$VER.vsix --clobber
