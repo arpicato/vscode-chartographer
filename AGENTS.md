@@ -64,3 +64,38 @@ Old redundant commands removed.
 Uses `@vscode/test-electron` — downloads VS Code, runs extension in headless mode.
 The downloaded VS Code is cached in `.vscode-test/`.
 `--disable-gpu` flag needed when launching standalone in container.
+
+## Gotchas & learnings
+
+### Publishing
+- Publisher is `ArpinFidel` (can't rename on marketplace). Repo remote is `arpicato/vscode-chartographer`.
+- `vsce publish` fails with "Access Denied" if PAT org doesn't match publisher. Create PAT under **All accessible organizations** to avoid org mismatch.
+- Azure DevOps org must use **Microsoft account** (not "Default Directory") or PAT permissions break.
+- Must bump `version` in `package.json` before publishing. If version already exists on marketplace, publish fails with "already exists".
+- `.github/workflows/publish.yml` triggers on `release: [published]` or manual `workflow_dispatch`.
+
+### Path finding
+- Cytoscape `dijkstra().pathTo()` returns root-only collection when no path exists (not empty). Check `path.nodes().filter(n => n.id() === targetId).length > 0` instead of `path.length === 0`.
+- `directed: false` lets reverse paths work but also finds paths through sink nodes (a→b←c would find a path from a to c).
+- `cy.getElementById()` returns `CollectionReturnValue`. Pass `.first()` to `dijkstra()` root param for type safety.
+- `computePath` must call `resetHighlights()` first to clear any existing neighborhood highlight state.
+
+### Workspace symbol search
+- Use `vscode.commands.executeCommand('vscode.executeWorkspaceSymbolProvider', query)` to search all symbols.
+- Use `vscode.commands.executeCommand('vscode.prepareCallHierarchy', uri, position)` to get `CallHierarchyItem` from a symbol.
+- When adding a workspace symbol to the graph, just add the node with `getCyElems` + `addElems` — don't expand it (surprises the user).
+- `getCyElems` needs `fromRanges` to be optional — handle `undefined` with `(edge.fromRanges || []).map(...)`.
+
+### Unit tests
+- Test file uses `suite`/`test` (TDD interface). Mocha must be created with `{ ui: 'tdd' }` or it fails with "suite is not defined".
+- Tests inline functions from source rather than importing them (avoids `vscode` module dependency).
+- 25 tests across 3 suites: `formatFileLabel`, `trimFunctionName`, `findLongestCommonPrefix`.
+
+### Cytoscape edge data
+- Edge `callSites[]` stored in `CyEdge.data.callSites`. Created from `CallHierarchy.fromRanges` in `getCyElems`.
+- `CallSite` shape: `{ uri: { scheme, authority, path, query, fragment }, line, character }`.
+- Edge click handler: 1 call site → navigate directly, N call sites → send `selectCallSite` to extension for quickPick.
+
+### Context menu
+- "Find path to..." sends `findPathTo` message to extension. Extension builds quickPick from `nodes` dict + workspace search option.
+- "Find path from here" (click-mode) was removed in favor of quickPick — more reliable and searchable.
