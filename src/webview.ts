@@ -1,5 +1,5 @@
 import * as vscode from 'vscode'
-import { CyNode, Element, getCyElems } from './graph'
+import { CyNode, Element, getCyElems, getNode } from './graph'
 import { resolveHtml } from './html'
 import { CallHierarchy, getCallHierarchy as buildGraph } from './call'
 import { printChannelOutput } from './logger'
@@ -235,6 +235,113 @@ export function setupCallGraph(
             case 'timing':
                 const t = msg.data as any
                 printChannelOutput(`[timing] scriptLoad=${t.scriptLoad.toFixed(0)}ms toReady=${t.toReady.toFixed(0)}ms render=${t.render.toFixed(0)}ms total=${t.total.toFixed(0)}ms`)
+                break
+
+            case 'goToCallSite':
+                const csUri = vscode.Uri.from(msg.data.uri)
+                const csRange = new vscode.Range(
+                    msg.data.line, msg.data.character,
+                    msg.data.line, msg.data.character,
+                )
+                vscode.window.showTextDocument(csUri, {
+                    selection: csRange,
+                    preview: true,
+                    viewColumn: vscode.ViewColumn.One,
+                })
+                break
+
+            case 'selectCallSite':
+                const items = msg.data.callSites.map((cs, i) => ({
+                    label: `Line ${cs.line + 1}, Column ${cs.character + 1}`,
+                    description: vscode.Uri.from(cs.uri).fsPath.split('/').pop() || '',
+                    detail: `#${i + 1} of ${msg.data.callSites.length}`,
+                    cs,
+                }))
+                const pick = await vscode.window.showQuickPick(items, {
+                    placeHolder: 'Select call site to navigate to',
+                })
+                if (pick) {
+                    const uri = vscode.Uri.from(pick.cs.uri)
+                    const range = new vscode.Range(
+                        pick.cs.line, pick.cs.character,
+                        pick.cs.line, pick.cs.character,
+                    )
+                    vscode.window.showTextDocument(uri, {
+                        selection: range,
+                        preview: true,
+                        viewColumn: vscode.ViewColumn.One,
+                    })
+                }
+                break
+
+            case 'findPathTo':
+                const findSourceNode = nodes[msg.data.sourceId] as CyNode | undefined
+                if (!findSourceNode) break
+                const graphItems = Object.values(nodes)
+                    .filter((n): n is CyNode => n.group === 'nodes' && !n.classes?.includes('compound') && n.data.id !== msg.data.sourceId)
+                    .map(n => ({
+                        label: n.data.label,
+                        description: n.data.id,
+                        id: n.data.id,
+                    }))
+                    .sort((a, b) => a.label.localeCompare(b.label))
+                graphItems.push({ label: '', description: '', id: '' })
+                graphItems.push({ label: '🔍 Search workspace for function...', description: '', id: '__search__' })
+                const qpPick = await vscode.window.showQuickPick(graphItems, {
+                    placeHolder: `Find path from "${findSourceNode.data.label}" to...`,
+                    matchOnDescription: true,
+                })
+                if (!qpPick) break
+                if (qpPick.id === '__search__') {
+                    const query = await vscode.window.showInputBox({
+                        prompt: 'Enter function name to search for',
+                        placeHolder: 'e.g. handleLogin',
+                    })
+                    if (!query) break
+                    const symbols = await vscode.commands.executeCommand<vscode.SymbolInformation[]>(
+                        'vscode.executeWorkspaceSymbolProvider', query
+                    )
+                    if (!symbols || symbols.length === 0) {
+                        vscode.window.showInformationMessage(`No symbols found matching "${query}"`)
+                        break
+                    }
+                    const symbolPick = await vscode.window.showQuickPick(
+                        symbols.map(s => ({
+                            label: s.name,
+                            description: s.containerName,
+                            detail: s.location.uri.fsPath.split('/').pop() + ':' + (s.location.range.start.line + 1),
+                            symbol: s,
+                        })),
+                        { placeHolder: 'Select function', matchOnDescription: true, matchOnDetail: true }
+                    )
+                    if (!symbolPick) break
+                    const pos = new vscode.Position(symbolPick.symbol.location.range.start.line, 0)
+                    const item: vscode.CallHierarchyItem[] = await vscode.commands.executeCommand(
+                        'vscode.prepareCallHierarchy',
+                        symbolPick.symbol.location.uri,
+                        pos,
+                    )
+                    if (!item || !item[0]) {
+                        vscode.window.showErrorMessage('Cannot resolve call hierarchy for selected symbol')
+                        break
+                    }
+                    const wsCallHierarchy: CallHierarchy = { item: item[0], fromRanges: [] }
+                    const wsElems = getCyElems(workspaceRoot, wsCallHierarchy, config)
+                    addElems(wsElems)
+                    const wsNode = getNode(workspaceRoot, item[0])
+                    const wsTargetId = `node:${wsNode.id}`
+                    const wsHighlight: ExtensionToWebviewMessage = {
+                        type: 'highlightPath',
+                        data: { sourceId: msg.data.sourceId, targetId: wsTargetId },
+                    }
+                    panel.webview.postMessage(wsHighlight)
+                } else {
+                    const highlightMsg: ExtensionToWebviewMessage = {
+                        type: 'highlightPath',
+                        data: { sourceId: msg.data.sourceId, targetId: qpPick.id },
+                    }
+                    panel.webview.postMessage(highlightMsg)
+                }
                 break
         }
     }

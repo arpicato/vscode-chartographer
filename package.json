@@ -1,7 +1,7 @@
 {
     "name": "chartographer",
-    "displayName": "Chartographer",
-    "description": "Easily visualize function call hierarchy in a neat graph representation",
+    "displayName": "Chartographer — Call Graph",
+    "description": "Interactive call graph and call hierarchy visualization powered by VS Code's language server/LSP. Explore callers, callees, and function relationships.",
     "version": "1.3.0",
     "publisher": "ArpinFidel",
     "engines": {
@@ -247,9 +247,17 @@
     },
     "homepage": "https://github.com/arpinfidel/vscode-chartographer/blob/master/README.md",
     "keywords": [
-        "graphviz",
         "call graph",
-        "dot"
+        "call hierarchy",
+        "call tree",
+        "caller",
+        "callee",
+        "function calls",
+        "code visualization",
+        "code graph",
+        "lsp",
+        "language server",
+        "dependency graph"
     ],
     "dependencies": {
         "minimatch": "^9.0.3"

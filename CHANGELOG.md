@@ -1,6 +1,26 @@
 
 # Change Log
 
+### 👋 I'm open to remote opportunities
+
+I'm currently looking for remote software engineering roles and contract work, particularly around backend systems, developer tooling, infrastructure, and AI/agent tooling.
+
+If you like Chartographer and think I could be a good fit for your team, feel free to reach out:
+
+* LinkedIn: https://linkedin.com/in/richard-putra
+* GitHub: https://github.com/arpinfidel
+
+## [1.4.0] 2026-08-08
+
+- Edge click navigation: click edge to jump to call site (1 site) or quickPick (N sites)
+- Shift+Click node: shortest path from last clicked node
+- "Find path to..." context menu: quickPick with graph nodes + workspace symbol search
+- Workspace symbol search: find paths to functions not yet in the graph
+- Reverse paths work (undirected Dijkstra)
+- Path indicator: floating bar with hops count, × to clear
+- Renamed to "Chartographer — Call Graph", updated description and keywords
+- Updated instructions panel with new shortcuts
+
 ## [1.3.0] 2026-08-07
 
 - `defaultDirection` config: horizontal or vertical layout for all algorithms

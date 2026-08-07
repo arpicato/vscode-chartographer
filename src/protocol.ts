@@ -5,6 +5,12 @@ export type LayoutAlgorithm = 'klay' | 'elk' | 'dagre'
 
 export type LayoutDirection = 'horizontal' | 'vertical'
 
+export type CallSite = {
+    uri: { scheme: string; authority: string; path: string; query: string; fragment: string }
+    line: number
+    character: number
+}
+
 export interface ChartographerConfig {
     highlightRoots?: boolean
     highlightLeaves?: boolean
@@ -42,7 +48,11 @@ export type WebviewToExtensionMessage =
     | { type: 'state'; data: 'loaded' | 'ready' }
     | { type: 'goToFunction'; data: string }
     | { type: 'expandBoth'; data: { id: string; depth: number } }
+    | { type: 'goToCallSite'; data: { uri: { scheme: string; authority: string; path: string; query: string; fragment: string }; line: number; character: number } }
+    | { type: 'selectCallSite'; data: { edgeId: string; callSites: CallSite[] } }
+    | { type: 'findPathTo'; data: { sourceId: string } }
 
 export type ExtensionToWebviewMessage =
     | { type: 'setParams'; data: { config: ChartographerConfig } }
     | { type: 'addElems'; data: cytoscape.ElementDefinition[] }
+    | { type: 'highlightPath'; data: { sourceId: string; targetId: string } }

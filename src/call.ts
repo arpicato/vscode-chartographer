@@ -33,6 +33,7 @@ export interface CallHierarchy {
     item: vscode.CallHierarchyItem
     from?: vscode.CallHierarchyItem
     to?: vscode.CallHierarchyItem
+    fromRanges: vscode.Range[]
 }
 
 export async function getCallHierarchy(
@@ -85,10 +86,10 @@ export async function getCallHierarchy(
             let next: vscode.CallHierarchyItem
             let edge: CallHierarchy
             if (call instanceof vscode.CallHierarchyOutgoingCall) {
-                edge = { item: node, to: call.to }
+                edge = { item: node, to: call.to, fromRanges: call.fromRanges }
                 next = call.to
             } else {
-                edge = { item: node, from: call.from }
+                edge = { item: node, from: call.from, fromRanges: call.fromRanges }
                 next = call.from
             }
 

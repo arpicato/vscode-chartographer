@@ -1,7 +1,7 @@
 import { CallHierarchy } from "./call"
 import * as vscode from 'vscode'
 import * as path from 'path'
-import { ChartographerConfig } from './protocol'
+import { ChartographerConfig, CallSite } from './protocol'
 
 export const getNode = (workspaceRoot: string, n: vscode.CallHierarchyItem) => {
     // Create a node with a name based on the URI, item name, and range.
@@ -98,9 +98,17 @@ export function formatFileLabel(filePath: string, config?: ChartographerConfig):
 export function getCyElems(workspaceRoot: string, edge: CallHierarchy, config?: ChartographerConfig) {
     const elems: Element[] = []
 
-    // Iterate through the children of the CallHierarchy.
     const node = getNode(workspaceRoot, edge.item);
     elems.push(...getCyNodes(node, config))
+
+    const callSites: CallSite[] = (edge.fromRanges || []).map(r => {
+        const siteUri = edge.from ? edge.from.uri : edge.item.uri
+        return {
+            uri: { scheme: siteUri.scheme, authority: siteUri.authority, path: siteUri.path, query: siteUri.query, fragment: siteUri.fragment },
+            line: r.start.line,
+            character: r.start.character,
+        }
+    })
 
     if (edge.from) {
         const from = getNode(workspaceRoot, edge.from);
@@ -111,6 +119,7 @@ export function getCyElems(workspaceRoot: string, edge: CallHierarchy, config?: 
                 id: `edge:${from.id}:${node.id}`,
                 source: `node:${from.id}`,
                 target: `node:${node.id}`,
+                callSites,
             }
         })
     } else if (edge.to) {
@@ -122,11 +131,11 @@ export function getCyElems(workspaceRoot: string, edge: CallHierarchy, config?: 
                 id: `edge:${node.id}:${to.id}`,
                 source: `node:${node.id}`,
                 target: `node:${to.id}`,
+                callSites,
             }
         })
     }
 
-    // Return the generated graph.
     return elems;
 }
 
@@ -150,6 +159,7 @@ export type CyEdge = {
         id: string;
         source: string;
         target: string;
+        callSites?: CallSite[];
     };
 };
 

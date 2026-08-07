@@ -149,6 +149,47 @@
                 opacity: 0.5;
                 margin-left: 20px;
             }
+
+            #path-mode-hint {
+                position: absolute;
+                top: 10px;
+                left: 180px;
+                z-index: 20;
+                font-size: 12px;
+                color: var(--vscode-editor-foreground, #cccccc);
+                background-color: var(--vscode-editor-background, #1e1e1e);
+                padding: 8px 16px;
+                border-radius: 5px;
+                border: 1px solid var(--vscode-focusBorder, #007fd4);
+                display: none;
+            }
+
+            #path-indicator {
+                position: absolute;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 20;
+                font-size: 12px;
+                color: var(--vscode-editor-foreground, #cccccc);
+                background-color: var(--vscode-editor-background, #1e1e1e);
+                padding: 8px 16px;
+                border-radius: 5px;
+                border: 1px solid var(--vscode-focusBorder, #007fd4);
+                display: none;
+                white-space: nowrap;
+            }
+
+            .path-indicator-close {
+                margin-left: 12px;
+                cursor: pointer;
+                font-weight: bold;
+                opacity: 0.7;
+            }
+
+            .path-indicator-close:hover {
+                opacity: 1;
+            }
         </style>
     </head>
     <body>
@@ -158,14 +199,18 @@
             <p>Hover + E to expand one level</p>
             <p>Hover + Shift+E to expand recursively</p>
             <p>Hover + Del to remove node</p>
-            <p>Ctrl+Click to go to function</p>
             <p>Click to highlight connections</p>
+            <p>Shift+Click to show path from selected node</p>
+            <p>Click edge to navigate to call site</p>
+            <p>Ctrl+Click to go to function</p>
             <p>Right-click for context menu</p>
             <p>Scroll to zoom · Drag to pan</p>
             <div id="hide-text">Click to hide</div>
         </div>
 
         <div id="reset-zoom">Reset Zoom</div>
+
+        <div id="path-indicator"></div>
 
         <div id="search-container">
             <input type="text" id="search-input" placeholder="Search nodes..." />

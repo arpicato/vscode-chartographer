@@ -5,7 +5,7 @@
 ```
 npm run build       # esbuild → out/extension.js + out/webview.js
 npm run typecheck   # tsc --noEmit
-npm run test:unit   # 19 mocha tests (fast, no VS Code)
+npm run test:unit   # 25 mocha tests (fast, no VS Code)
 npm run test        # VS Code integration test (requires xvfb-run)
 npm run package     # vsce → .vsix
 ```
@@ -36,7 +36,24 @@ nix-shell -p xvfb-run cups.lib --run "xvfb-run --auto-servernum npm run test"
 - Webview JS is TypeScript, not raw JS in HTML. Bundle with esbuild.
 - `buildWebview` returns `() => Promise<void>` — used with `vscode.window.withProgress`
 
-## Single command
+## Interaction model
+
+- Click node → highlight connected neighborhood
+- Shift+Click node → shortest directed path from last clicked node
+- Ctrl+Click node → go to function definition
+- Click edge (1 call site) → navigate to call site
+- Click edge (N call sites) → quickPick to choose
+- Right-click node → context menu (remove, expand, find path from here, go to)
+- Hover + E → expand one level, Hover + Shift+E → expand recursively, Hover + Del → remove
+- "Find path from here" → enters selection mode, click destination node, Esc to cancel
+- Path indicator: floating bar shows source → target · N hops, × to clear
+- Path computation uses Cytoscape's built-in Dijkstra (directed, unweighted)
+
+## Edge call sites
+
+- `CallHierarchy.fromRanges` stored in edge data as `callSites[]` (URI + line/col)
+- `call.ts` `CallHierarchy` interface includes `fromRanges: vscode.Range[]`
+- `graph.ts` `CyEdge.data.callSites?: CallSite[]`
 
 All call graph variants consolidated into one `Chartographer.showCallGraph` command.
 User picks direction (Both/Incoming/Outgoing) via quickPick, then enters depth.

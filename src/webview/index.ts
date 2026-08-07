@@ -20,6 +20,7 @@ const vscode = acquireVsCodeApi()
 const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
 let cy: Core | null = null
 let hoveredNodeId: string | null = null
+let lastClickedNodeId: string | null = null
 
 const t0 = performance.now()
 let t1 = 0, t2 = 0, t3 = 0
@@ -222,6 +223,50 @@ function resetHighlights(): void {
     cy.nodes().removeClass(['dimmedNode', 'highlightedNode', 'searchHighlight'])
     cy.edges().removeClass(['dimmedEdge', 'highlightedEdge'])
     cy.nodes().data('isHighlighted', false)
+    hidePathIndicator()
+}
+
+function computePath(sourceId: string, targetId: string): void {
+    if (!cy) return
+    resetHighlights()
+    const source = cy.getElementById(sourceId).first() as any
+    const target = cy.getElementById(targetId).first() as any
+    if (source.length === 0 || target.length === 0) return
+
+    const path = cy.elements().dijkstra({
+        root: source,
+        directed: false,
+        weight: () => 1,
+    }).pathTo(target)
+
+    if (path.length === 0) {
+        showPathIndicator(sourceId, targetId, -1)
+        return
+    }
+
+    cy.nodes().not(path).not(path.parents()).addClass('dimmedNode')
+    cy.edges().not(path).addClass('dimmedEdge')
+
+    const hops = path.edges().length
+    showPathIndicator(sourceId, targetId, hops)
+}
+
+function showPathIndicator(sourceId: string, targetId: string, hops: number): void {
+    const el = document.getElementById('path-indicator')
+    if (!el) return
+    const sourceLabel = cy?.getElementById(sourceId).data('label') || sourceId
+    const targetLabel = cy?.getElementById(targetId).data('label') || targetId
+    if (hops < 0) {
+        el.innerHTML = `${sourceLabel} → ${targetLabel} · no path <span class="path-indicator-close">&times;</span>`
+    } else {
+        el.innerHTML = `${sourceLabel} → ${targetLabel} · ${hops} hop${hops !== 1 ? 's' : ''} <span class="path-indicator-close">&times;</span>`
+    }
+    el.style.display = 'block'
+}
+
+function hidePathIndicator(): void {
+    const el = document.getElementById('path-indicator')
+    if (el) el.style.display = 'none'
 }
 
 function toggleInstructions(): void {
@@ -353,6 +398,10 @@ addElems(msg) {
             },
         } as any)
     },
+highlightPath(msg) {
+        resetHighlights()
+        computePath(msg.data.sourceId, msg.data.targetId)
+    },
 }
 
 window.addEventListener('message', event => {
@@ -421,6 +470,7 @@ function showContextMenu(x: number, y: number, nodeId: string): void {
         <div class="context-menu-item" data-action="expand">Expand one level <span class="shortcut">E</span></div>
         <div class="context-menu-item" data-action="expandAll">Expand recursively <span class="shortcut">Shift+E</span></div>
         <div class="context-menu-separator"></div>
+        <div class="context-menu-item" data-action="findPathTo">Find path to... <span class="shortcut">Shift+Click</span></div>
         <div class="context-menu-item" data-action="goTo">Go to function <span class="shortcut">Ctrl+Click</span></div>
     `
 
@@ -457,6 +507,9 @@ function handleContextAction(action: string, nodeId: string): void {
             break
         case 'expandAll':
             vscode.postMessage({ type: 'expandBoth', data: { id: nodeId, depth: -1 } })
+            break
+        case 'findPathTo':
+            vscode.postMessage({ type: 'findPathTo', data: { sourceId: nodeId } })
             break
         case 'goTo':
             vscode.postMessage({ type: 'goToFunction', data: nodeId })
@@ -520,12 +573,18 @@ function start(): void {
 
     cy!.on('tap', 'node', function (e) {
         const node = e.target
+        const nodeId = node.id()
 
         if (isCtrlClick(e)) {
             vscode.postMessage({
                 type: 'goToFunction',
-                data: node.id(),
+                data: nodeId,
             })
+            return
+        }
+
+        if (isShiftClick(e) && lastClickedNodeId && lastClickedNodeId !== nodeId) {
+            computePath(lastClickedNodeId, nodeId)
             return
         }
 
@@ -548,12 +607,27 @@ function start(): void {
 
             cy!.nodes().not('.highlightedNode').addClass('dimmedNode')
             cy!.edges().not('.highlightedEdge').addClass('dimmedEdge')
+
+            lastClickedNodeId = nodeId
         } else {
             node.data('isHighlighted', false)
             node.parent().data('isHighlighted', false)
             node.children().data('isHighlighted', false)
             cy!.nodes().removeClass(['highlightedNode', 'dimmedNode'])
             cy!.edges().removeClass(['highlightedEdge', 'dimmedEdge'])
+            lastClickedNodeId = null
+        }
+    })
+
+    cy!.on('tap', 'edge', function (e) {
+        const edge = e.target
+        const callSites: { uri: { scheme: string; authority: string; path: string; query: string; fragment: string }; line: number; character: number }[] | undefined = edge.data('callSites')
+        if (!callSites || callSites.length === 0) return
+
+        if (callSites.length === 1) {
+            vscode.postMessage({ type: 'goToCallSite', data: callSites[0] })
+        } else {
+            vscode.postMessage({ type: 'selectCallSite', data: { edgeId: edge.id(), callSites } })
         }
     })
 
@@ -570,6 +644,12 @@ function start(): void {
         if (!action || !nodeId) return
         this.style.display = 'none'
         handleContextAction(action, nodeId)
+    })
+
+    document.getElementById('path-indicator')?.addEventListener('click', function (e) {
+        if ((e.target as HTMLElement).classList.contains('path-indicator-close')) {
+            resetHighlights()
+        }
     })
 }
 
