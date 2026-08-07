@@ -1,10 +1,18 @@
 
 # Change Log
 
-## [1.1.0] 2025-03-18
+## [1.2.0] 2026-08-07
 
-- Added parameterized node group name forming
-- Added option to trim method name on first non alphabet character
+- Hover + E/Shift+E/Del for expand and remove nodes
+- Right-click context menu with remove, expand, and go to function
+- User-configurable `trimFunctionPattern` regex (replaces boolean `trimFunctionNames`)
+- Consolidate 6 commands into 1 quickPick (direction + depth)
+- esbuild bundling: faster build, smaller VSIX, type-safe webview code
+- Typed message protocol between extension and webview
+- Fix .gitignore pattern conversion (was commented out)
+- Fix panel state restoration across restarts
+- Fix crash when no editor is active
+- 25 unit tests + VS Code integration test
 
 ## [1.0.18] 2025-03-17
 
