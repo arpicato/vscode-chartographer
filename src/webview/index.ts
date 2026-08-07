@@ -26,9 +26,10 @@ let state: WebviewState = previousState || {
     elems: [],
     hiddenNodes: [],
 }
+if (!state.hiddenNodes) state.hiddenNodes = []
+if (!state.elems) state.elems = []
 
 let expandedNodes: Set<string> = new Set()
-let lastBatchIds: string[] = []
 
 const layoutDebounce: Record<string, number> = {
     klay: 5,
@@ -319,11 +320,10 @@ const methods: {
         vscode.postMessage({ type: 'state', data: 'ready' })
         start()
     },
-    addElems(msg) {
+addElems(msg) {
         state.elems = state.elems.concat(msg.data)
-        const ids = msg.data.map(e => e.data?.id).filter((id): id is string => !!id)
-        lastBatchIds = ids
         cy?.add(msg.data)
+        vscode.setState(state)
         resetRootHighlights()
         resetLeafHighlights()
         resetHighlights()
@@ -372,28 +372,84 @@ function hideNode(id: string): void {
     if (!cy) return
     const node = cy.getElementById(id)
     if (node.length === 0) return
-
-    const connected = node.connectedEdges()
-    cy.remove(node.add(connected))
+    cy.remove(node)
     state.hiddenNodes.push(id)
-    state.elems = state.elems.filter(e => e.data?.id !== id)
     vscode.setState(state)
 }
 
-function collapseLastBatch(): void {
-    if (!cy || lastBatchIds.length === 0) return
-    const toRemove = cy.collection()
-    for (const id of lastBatchIds) {
-        const el = cy.getElementById(id)
-        if (el.length > 0) toRemove.merge(el)
-    }
-    const edges = toRemove.connectedEdges()
-    cy.remove(toRemove.merge(edges as any))
-    const idSet = new Set(lastBatchIds)
-    state.elems = state.elems.filter(e => e.data?.id && !idSet.has(e.data.id))
-    lastBatchIds = []
+function hideSubtree(id: string, direction: 'descendants' | 'ancestors'): void {
+    if (!cy) return
+    const node = cy.getElementById(id)
+    if (node.length === 0) return
+
+    const nodes = direction === 'descendants'
+        ? node.successors()
+        : node.predecessors()
+    const all = nodes as cytoscape.CollectionReturnValue
+    const ids = all.map(n => n.id())
+
+    cy.remove(all)
+    state.hiddenNodes.push(...ids)
+    expandedNodes.forEach((_, k) => { if (ids.includes(k)) expandedNodes.delete(k) })
     vscode.setState(state)
     debouncedLayout()
+}
+
+function showContextMenu(x: number, y: number, nodeId: string): void {
+    const menu = document.getElementById('context-menu')
+    if (!menu) return
+
+    const label = cy?.getElementById(nodeId).data('label') || nodeId
+
+    menu.innerHTML = `
+        <div class="context-menu-item" data-action="hide">Hide "${label}"</div>
+        <div class="context-menu-item" data-action="hideDescendants">Hide descendants</div>
+        <div class="context-menu-item" data-action="hideAncestors">Hide ancestors</div>
+        <div class="context-menu-separator"></div>
+        <div class="context-menu-item" data-action="expand">Expand one level</div>
+        <div class="context-menu-item" data-action="expandAll">Expand recursively</div>
+        <div class="context-menu-separator"></div>
+        <div class="context-menu-item" data-action="goTo">Go to function</div>
+    `
+
+    menu.style.display = 'block'
+    menu.style.left = `${x}px`
+    menu.style.top = `${y}px`
+    menu.dataset.nodeId = nodeId
+
+    const close = () => {
+        menu.style.display = 'none'
+        document.removeEventListener('click', closeOutside)
+    }
+    const closeOutside = (e: MouseEvent) => {
+        if (!menu.contains(e.target as Node)) {
+            close()
+        }
+    }
+    setTimeout(() => document.addEventListener('click', closeOutside), 0)
+}
+
+function handleContextAction(action: string, nodeId: string): void {
+    switch (action) {
+        case 'hide':
+            hideNode(nodeId)
+            break
+        case 'hideDescendants':
+            hideSubtree(nodeId, 'descendants')
+            break
+        case 'hideAncestors':
+            hideSubtree(nodeId, 'ancestors')
+            break
+        case 'expand':
+            vscode.postMessage({ type: 'expandBoth', data: { id: nodeId, depth: 1 } })
+            break
+        case 'expandAll':
+            vscode.postMessage({ type: 'expandBoth', data: { id: nodeId, depth: -1 } })
+            break
+        case 'goTo':
+            vscode.postMessage({ type: 'goToFunction', data: nodeId })
+            break
+    }
 }
 
 function start(): void {
@@ -435,22 +491,17 @@ function start(): void {
 
         if (isAltClick(e)) {
             const nodeId = node.id()
-            if (expandedNodes.has(nodeId)) {
-                expandedNodes.delete(nodeId)
-                collapseLastBatch()
+            expandedNodes.add(nodeId)
+            if (isShiftClick(e)) {
+                vscode.postMessage({
+                    type: 'expandBoth',
+                    data: { id: nodeId, depth: -1 },
+                })
             } else {
-                expandedNodes.add(nodeId)
-                if (isShiftClick(e)) {
-                    vscode.postMessage({
-                        type: 'expandBoth',
-                        data: { id: nodeId, depth: -1 },
-                    })
-                } else {
-                    vscode.postMessage({
-                        type: 'expandBoth',
-                        data: { id: nodeId, depth: 1 },
-                    })
-                }
+                vscode.postMessage({
+                    type: 'expandBoth',
+                    data: { id: nodeId, depth: 1 },
+                })
             }
             return
         }
@@ -484,10 +535,18 @@ function start(): void {
     })
 
     cy!.on('cxttap', 'node', function (e) {
-        const node = e.target
-        if (confirm(`Hide "${node.data('label')}" and its connections?`)) {
-            hideNode(node.id())
-        }
+        const rendered = e.target.renderedPosition()
+        showContextMenu(rendered.x, rendered.y, e.target.id())
+    })
+
+    document.getElementById('context-menu')?.addEventListener('click', function (e) {
+        const item = (e.target as HTMLElement).closest('.context-menu-item') as HTMLElement | null
+        if (!item) return
+        const action = item.dataset.action
+        const nodeId = this.dataset.nodeId
+        if (!action || !nodeId) return
+        this.style.display = 'none'
+        handleContextAction(action, nodeId)
     })
 }
 

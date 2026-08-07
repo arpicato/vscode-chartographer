@@ -133,6 +133,37 @@
             .search-result-item:hover {
                 background-color: rgba(255, 255, 255, 0.1);
             }
+
+            #context-menu {
+                position: absolute;
+                z-index: 30;
+                background-color: var(--vscode-menu-background, #2d2d2d);
+                color: var(--vscode-menu-foreground, #cccccc);
+                border: 1px solid var(--vscode-menu-border, #555555);
+                border-radius: 4px;
+                padding: 4px 0;
+                min-width: 160px;
+                display: none;
+                font-size: 12px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            }
+
+            .context-menu-item {
+                padding: 6px 16px;
+                cursor: pointer;
+                white-space: nowrap;
+            }
+
+            .context-menu-item:hover {
+                background-color: var(--vscode-menu-selectionBackground, #094771);
+                color: var(--vscode-menu-selectionForeground, #ffffff);
+            }
+
+            .context-menu-separator {
+                height: 1px;
+                background-color: var(--vscode-menu-border, #555555);
+                margin: 4px 0;
+            }
         </style>
     </head>
     <body>
@@ -158,6 +189,8 @@
         </div>
 
         <div id="cy" style="height:100vh"></div>
+
+        <div id="context-menu"></div>
 
         <script>
             function toggleInstructions() {
