@@ -69,28 +69,6 @@
                 text-align: center;
             }
 
-            #show-hidden {
-                position: absolute;
-                top: 10px;
-                left: 175px;
-                cursor: pointer;
-                z-index: 20;
-                font-size: 12px;
-                color: rgba(255, 255, 255, 0.5);
-                width: 100px;
-                height: 40px;
-                background-color: rgba(0, 0, 0, 0.3);
-                border-radius: 10px;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                text-align: center;
-            }
-
-            #show-hidden:hover {
-                background-color: rgba(255, 255, 255, 0.1);
-            }
-
             #search-container {
                 position: absolute;
                 top: 10px;
@@ -164,24 +142,30 @@
                 background-color: var(--vscode-menu-border, #555555);
                 margin: 4px 0;
             }
+
+            .context-menu-item .shortcut {
+                float: right;
+                color: var(--vscode-menu-foreground, #cccccc);
+                opacity: 0.5;
+                margin-left: 20px;
+            }
         </style>
     </head>
     <body>
         <div id="question-mark" onclick="toggleInstructions()">&#63;</div>
 
         <div id="instructions" style="display: none;" onclick="toggleInstructions()">
-            <p>Ctrl/Cmd + Left Click to go to function</p>
-            <p>Left Click to highlight connections</p>
-            <p>Left Click and drag to pan</p>
-            <p>Scroll to zoom</p>
-            <p>Alt/Opt + Left Click to expand graph by one level</p>
-            <p>Alt/Opt + Shift + Left Click to expand graph recursively</p>
+            <p>Hover + E to expand one level</p>
+            <p>Hover + Shift+E to expand recursively</p>
+            <p>Hover + Del to remove node</p>
+            <p>Ctrl+Click to go to function</p>
+            <p>Click to highlight connections</p>
+            <p>Right-click for context menu</p>
+            <p>Scroll to zoom · Drag to pan</p>
             <div id="hide-text">Click to hide</div>
         </div>
 
         <div id="reset-zoom">Reset Zoom</div>
-
-        <div id="show-hidden">Show Hidden</div>
 
         <div id="search-container">
             <input type="text" id="search-input" placeholder="Search nodes..." />

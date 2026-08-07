@@ -19,6 +19,7 @@ declare function acquireVsCodeApi(): VsCodeApi
 const vscode = acquireVsCodeApi()
 const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
 let cy: Core | null = null
+let hoveredNodeId: string | null = null
 
 const t0 = performance.now()
 let t1 = 0, t2 = 0, t3 = 0
@@ -27,9 +28,7 @@ const previousState = vscode.getState()
 let state: WebviewState = previousState || {
     config: {},
     elems: [],
-    hiddenNodes: [],
 }
-if (!state.hiddenNodes) state.hiddenNodes = []
 if (!state.elems) state.elems = []
 
 let expandedNodes: Set<string> = new Set()
@@ -371,28 +370,16 @@ function isShiftClick(evt: cytoscape.EventObject): boolean {
     return e?.shiftKey || false
 }
 
-function showHidden(): void {
-    if (!cy) return
-    const hidden = state.hiddenNodes
-    if (hidden.length === 0) return
-
-    const toRestore = state.elems.filter(e => e.data?.id && hidden.includes(e.data.id))
-    cy.add(toRestore)
-    state.hiddenNodes = []
-    vscode.setState(state)
-    debouncedLayout()
-}
-
-function hideNode(id: string): void {
+function removeNode(id: string): void {
     if (!cy) return
     const node = cy.getElementById(id)
     if (node.length === 0) return
     cy.remove(node)
-    state.hiddenNodes.push(id)
+    state.elems = state.elems.filter(e => e.data?.id !== id)
     vscode.setState(state)
 }
 
-function hideSubtree(id: string, direction: 'descendants' | 'ancestors'): void {
+function removeSubtree(id: string, direction: 'descendants' | 'ancestors'): void {
     if (!cy) return
     const node = cy.getElementById(id)
     if (node.length === 0) return
@@ -404,7 +391,7 @@ function hideSubtree(id: string, direction: 'descendants' | 'ancestors'): void {
     const ids = all.map(n => n.id())
 
     cy.remove(all)
-    state.hiddenNodes.push(...ids)
+    state.elems = state.elems.filter(e => e.data?.id && !ids.includes(e.data.id))
     expandedNodes.forEach((_, k) => { if (ids.includes(k)) expandedNodes.delete(k) })
     vscode.setState(state)
     debouncedLayout()
@@ -417,14 +404,14 @@ function showContextMenu(x: number, y: number, nodeId: string): void {
     const label = cy?.getElementById(nodeId).data('label') || nodeId
 
     menu.innerHTML = `
-        <div class="context-menu-item" data-action="hide">Hide "${label}"</div>
-        <div class="context-menu-item" data-action="hideDescendants">Hide descendants</div>
-        <div class="context-menu-item" data-action="hideAncestors">Hide ancestors</div>
+        <div class="context-menu-item" data-action="remove">Remove "${label}" <span class="shortcut">Del</span></div>
+        <div class="context-menu-item" data-action="removeDescendants">Remove descendants</div>
+        <div class="context-menu-item" data-action="removeAncestors">Remove ancestors</div>
         <div class="context-menu-separator"></div>
-        <div class="context-menu-item" data-action="expand">Expand one level</div>
-        <div class="context-menu-item" data-action="expandAll">Expand recursively</div>
+        <div class="context-menu-item" data-action="expand">Expand one level <span class="shortcut">E</span></div>
+        <div class="context-menu-item" data-action="expandAll">Expand recursively <span class="shortcut">Shift+E</span></div>
         <div class="context-menu-separator"></div>
-        <div class="context-menu-item" data-action="goTo">Go to function</div>
+        <div class="context-menu-item" data-action="goTo">Go to function <span class="shortcut">Ctrl+Click</span></div>
     `
 
     menu.style.display = 'block'
@@ -446,14 +433,14 @@ function showContextMenu(x: number, y: number, nodeId: string): void {
 
 function handleContextAction(action: string, nodeId: string): void {
     switch (action) {
-        case 'hide':
-            hideNode(nodeId)
+        case 'remove':
+            removeNode(nodeId)
             break
-        case 'hideDescendants':
-            hideSubtree(nodeId, 'descendants')
+        case 'removeDescendants':
+            removeSubtree(nodeId, 'descendants')
             break
-        case 'hideAncestors':
-            hideSubtree(nodeId, 'ancestors')
+        case 'removeAncestors':
+            removeSubtree(nodeId, 'ancestors')
             break
         case 'expand':
             vscode.postMessage({ type: 'expandBoth', data: { id: nodeId, depth: 1 } })
@@ -471,6 +458,11 @@ function start(): void {
     const container = document.getElementById('cy')
     if (!container) return
 
+    container.addEventListener('contextmenu', e => e.preventDefault())
+    container.addEventListener('mousedown', () => {
+        document.body.focus()
+    })
+
     cy = cytoscape({
         container,
         style: getCyStyle(),
@@ -485,7 +477,30 @@ function start(): void {
     setupSearch()
 
     document.getElementById('reset-zoom')?.addEventListener('click', () => cy?.fit())
-    document.getElementById('show-hidden')?.addEventListener('click', showHidden)
+
+    cy!.on('mouseover', 'node', function (e) {
+        hoveredNodeId = e.target.id()
+    })
+    cy!.on('mouseout', 'node', function () {
+        hoveredNodeId = null
+    })
+
+    document.addEventListener('keydown', function (e) {
+        if (!hoveredNodeId) return
+        const node = cy?.getElementById(hoveredNodeId)
+        if (!node || node.length === 0) return
+
+        if (e.key === 'e' && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
+            e.preventDefault()
+            vscode.postMessage({ type: 'expandBoth', data: { id: hoveredNodeId, depth: 1 } })
+        } else if (e.key === 'e' && e.shiftKey) {
+            e.preventDefault()
+            vscode.postMessage({ type: 'expandBoth', data: { id: hoveredNodeId, depth: -1 } })
+        } else if (e.key === 'Delete' || e.key === 'Backspace') {
+            e.preventDefault()
+            removeNode(hoveredNodeId)
+        }
+    })
 
     cy!.on('tap', function (e) {
         if (e.target === cy) {
@@ -501,23 +516,6 @@ function start(): void {
                 type: 'goToFunction',
                 data: node.id(),
             })
-            return
-        }
-
-        if (isAltClick(e)) {
-            const nodeId = node.id()
-            expandedNodes.add(nodeId)
-            if (isShiftClick(e)) {
-                vscode.postMessage({
-                    type: 'expandBoth',
-                    data: { id: nodeId, depth: -1 },
-                })
-            } else {
-                vscode.postMessage({
-                    type: 'expandBoth',
-                    data: { id: nodeId, depth: 1 },
-                })
-            }
             return
         }
 
@@ -566,5 +564,7 @@ function start(): void {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
+    document.body.setAttribute('tabindex', '0')
+    document.body.focus()
     vscode.postMessage({ type: 'state', data: 'loaded' })
 })

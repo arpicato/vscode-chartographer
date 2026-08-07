@@ -7,7 +7,6 @@ import { ChartographerConfig, Direction, LayoutAlgorithm, WebviewToExtensionMess
 
 type State = {
     elems: Element[],
-    hiddenNodes: string[],
 }
 
 type Params = {
@@ -176,6 +175,12 @@ export function setupCallGraph(
                         }
                         if (state) {
                             for (const node of state.elems) {
+                                if ('uri' in node.data && node.data.uri && typeof node.data.uri === 'object' && !(node.data.uri instanceof vscode.Uri)) {
+                                    const u = node.data.uri as any
+                                    if (u.scheme) {
+                                        (node.data as any).uri = vscode.Uri.from({ scheme: u.scheme, authority: u.authority, path: u.path, query: u.query, fragment: u.fragment })
+                                    }
+                                }
                                 if (nodes[node.data.id]) continue
                                 nodes[node.data.id] = node
                             }
