@@ -3,10 +3,13 @@ import type cytoscape from 'cytoscape'
 export type Direction = 'Incoming' | 'Outgoing' | 'Both'
 export type LayoutAlgorithm = 'klay' | 'elk' | 'dagre'
 
+export type LayoutDirection = 'horizontal' | 'vertical'
+
 export interface ChartographerConfig {
     highlightRoots?: boolean
     highlightLeaves?: boolean
     defaultGraphLayoutAlgorithm?: LayoutAlgorithm
+    defaultDirection?: LayoutDirection
     colorScheme?: string
     nodeDisplayFormat?: string
     trimFunctionPattern?: string

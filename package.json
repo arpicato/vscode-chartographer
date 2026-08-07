@@ -117,6 +117,19 @@
                         "type": "number",
                         "default": 0.5
                     },
+                    "chartographer.defaultDirection": {
+                        "description": "Flow direction for layout algorithms",
+                        "type": "string",
+                        "default": "horizontal",
+                        "enum": [
+                            "horizontal",
+                            "vertical"
+                        ],
+                        "enumDescriptions": [
+                            "Left-to-right layout",
+                            "Top-to-bottom layout"
+                        ]
+                    },
                     "chartographer.showFileGroupBox": {
                         "description": "Show a visible border and background box around nodes grouped by file",
                         "type": "boolean",

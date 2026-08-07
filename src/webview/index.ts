@@ -2,7 +2,7 @@ import cytoscape, { Core } from 'cytoscape'
 import cytoscapeDagre from 'cytoscape-dagre'
 import cytoscapeElk from 'cytoscape-elk'
 import cytoscapeKlay from 'cytoscape-klay'
-import { ChartographerConfig, WebviewToExtensionMessage, ExtensionToWebviewMessage, WebviewState } from '../protocol'
+import { ChartographerConfig, LayoutDirection, WebviewToExtensionMessage, ExtensionToWebviewMessage, WebviewState } from '../protocol'
 
 cytoscape.use(cytoscapeDagre)
 cytoscape.use(cytoscapeElk)
@@ -286,13 +286,18 @@ function setupSearch(): void {
 }
 
 function getLayoutOpts(): cytoscape.LayoutOptions {
+    const algo = state.config.defaultGraphLayoutAlgorithm || 'klay'
+    const dir = state.config.defaultDirection || 'horizontal'
+    const klayDir = dir === 'horizontal' ? 'RIGHT' : 'DOWN'
+    const dagreDir = dir === 'horizontal' ? 'LR' : 'TB'
+
     const base: Record<string, unknown> = {
-        name: state.config.defaultGraphLayoutAlgorithm,
+        name: algo,
         animate: true,
         animationDuration: 250,
         klay: {
             addUnnecessaryBendpoints: false,
-            direction: 'RIGHT',
+            direction: klayDir,
             layoutHierarchy: true,
             spacing: 5,
             compactComponents: true,
@@ -302,8 +307,9 @@ function getLayoutOpts(): cytoscape.LayoutOptions {
         },
         elk: {
             algorithm: 'layered',
+            'elk.direction': dir === 'horizontal' ? 'RIGHT' : 'DOWN',
         },
-        rankDir: 'LR',
+        rankDir: dagreDir,
         rankSep: 15,
         nodeSep: 15,
         edgeSep: 15,

@@ -3,7 +3,7 @@ import { CyNode, Element, getCyElems } from './graph'
 import { resolveHtml } from './html'
 import { CallHierarchy, getCallHierarchy as buildGraph } from './call'
 import { printChannelOutput } from './logger'
-import { ChartographerConfig, Direction, LayoutAlgorithm, WebviewToExtensionMessage, ExtensionToWebviewMessage } from './protocol'
+import { ChartographerConfig, Direction, LayoutAlgorithm, LayoutDirection, WebviewToExtensionMessage, ExtensionToWebviewMessage } from './protocol'
 
 type State = {
     elems: Element[],
@@ -110,6 +110,7 @@ export function setupCallGraph(
         highlightRoots: configs.get<boolean>('highlightRoots'),
         highlightLeaves: configs.get<boolean>('highlightLeaves'),
         defaultGraphLayoutAlgorithm: configs.get<string>('defaultGraphLayoutAlgorithm') as LayoutAlgorithm | undefined,
+        defaultDirection: configs.get<string>('defaultDirection') as LayoutDirection | undefined,
         colorScheme: configs.get<string>('colorScheme'),
         nodeDisplayFormat: configs.get<string>('nodeDisplayFormat'),
         trimFunctionPattern: configs.get<string>('trimFunctionPattern'),
