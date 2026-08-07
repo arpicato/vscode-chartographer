@@ -8,7 +8,7 @@ I'm currently looking for remote software engineering roles and contract work, p
 If you like Chartographer and think I could be a good fit for your team, feel free to reach out:
 
 * LinkedIn: https://linkedin.com/in/richard-putra
-* GitHub: https://github.com/arpinfidel
+* GitHub: https://github.com/arpicato
 
 ## [1.4.0] 2026-08-08
 
