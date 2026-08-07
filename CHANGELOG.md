@@ -1,6 +1,13 @@
 
 # Change Log
 
+## [1.3.0] 2026-08-07
+
+- `defaultDirection` config: horizontal or vertical layout for all algorithms
+- `wheelSensitivity` config: zoom sensitivity (0.01-10)
+- `showFileGroupBox` / `showFileGroupLabel` config: toggle file group visibility
+- Fix serialized URI revive on panel restore
+
 ## [1.2.0] 2026-08-07
 
 - Hover + E/Shift+E/Del for expand and remove nodes
