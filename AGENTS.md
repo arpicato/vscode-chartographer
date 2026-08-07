@@ -76,6 +76,13 @@ The downloaded VS Code is cached in `.vscode-test/`.
 - `.github/workflows/publish.yml` triggers on `release: [published]` or manual `workflow_dispatch`.
 - On `workflow_dispatch`, `GITHUB_REF_NAME` is the branch name (e.g. `main`), not the version tag. The VSIX filename will be `chartographer-main.vsix` — this is fine for the publish step but the release upload step is skipped (guarded by `if: github.event_name == 'release'`).
 
+### Changelog popup
+- Changelog-on-update is custom extension behavior in `src/extension.ts`; it is not the Marketplace Changelog tab.
+- `checkChangelog()` only runs after extension activation. Keep `onStartupFinished` in `activationEvents` or an update alone will not trigger the popup.
+- Read the current version from `context.extension.packageJSON.version`; do not look up the extension by a hard-coded ID.
+- `vsce` packages `CHANGELOG.md` as lowercase `changelog.md`. Resolve it with `vscode.Uri.joinPath(context.extensionUri, 'changelog.md')` so installed Linux builds work.
+- Keep `Chartographer.showChangelog` contributed and registered so the popup content can be tested manually before publishing.
+
 ### Path finding
 - Cytoscape `dijkstra().pathTo()` returns root-only collection when no path exists (not empty). Check `path.nodes().filter(n => n.id() === targetId).length > 0` instead of `path.length === 0`.
 - `directed: false` lets reverse paths work but also finds paths through sink nodes (a→b←c would find a path from a to c).

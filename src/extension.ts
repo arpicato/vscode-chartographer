@@ -3,7 +3,6 @@ import { buildWebview, getSelectedFunctions, lastFocusedPanel, registerWebviewPa
 import { getCyNodes, getNode } from './graph'
 import { initLogger, printChannelOutput } from './logger'
 import { Direction } from './protocol'
-import * as path from "path";
 
 const getDefaultProgressOptions = (title: string): vscode.ProgressOptions => {
     return {
@@ -35,21 +34,18 @@ function findLongestCommonPrefix(strs: string[]): string {
     return prefix;
 }
 
-function showChangelog() {
-    const changelogUri = vscode.Uri.file(path.join(__dirname, "..", "CHANGELOG.md"));
-
-    // Open the Markdown file in preview mode
-    vscode.commands.executeCommand("markdown.showPreview", changelogUri);
+function showChangelog(context: vscode.ExtensionContext) {
+    const changelogUri = vscode.Uri.joinPath(context.extensionUri, "changelog.md");
+    return vscode.commands.executeCommand("markdown.showPreview", changelogUri);
 }
 
-function checkChangelog(context: vscode.ExtensionContext) {
-    const currentVersion = vscode.extensions.getExtension("ArpinFidel.Chartographer")?.packageJSON.version;
+async function checkChangelog(context: vscode.ExtensionContext) {
+    const currentVersion = context.extension.packageJSON.version as string;
     const lastVersion = context.globalState.get<string>("lastVersion");
 
-
-    if (currentVersion && lastVersion !== currentVersion) {
-        context.globalState.update("lastVersion", currentVersion);
-        showChangelog();
+    if (lastVersion !== currentVersion) {
+        await showChangelog(context);
+        await context.globalState.update("lastVersion", currentVersion);
     }
 }
 
@@ -113,6 +109,12 @@ function registerCommands(context: vscode.ExtensionContext, workspaceRoot: strin
         }
     )
     context.subscriptions.push(showOutputChannelDisposable)
+
+    const showChangelogDisposable = vscode.commands.registerCommand(
+        'Chartographer.showChangelog',
+        () => showChangelog(context)
+    )
+    context.subscriptions.push(showChangelogDisposable)
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -121,7 +123,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     initLogger(context)
 
-    checkChangelog(context)
+    void checkChangelog(context)
 
     registerWebviewPanelSerializer(context)
 
